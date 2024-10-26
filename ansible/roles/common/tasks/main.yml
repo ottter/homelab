@@ -1,0 +1,54 @@
+---
+- name: Install required packages
+  become: yes
+  apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg2
+      - software-properties-common
+    state: present
+    update_cache: yes
+
+- name: Update all packages
+  become: yes
+  apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: Create keyrings directory
+  become: yes
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Add Kubernetes apt-key
+  become: yes
+  get_url:
+    url: "https://pkgs.k8s.io/core:/stable:/{{ kubernetes_vesion }}/deb/Release.key"
+    dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+    mode: "0644"
+    validate_certs: false
+    force: true
+
+- name: Add Kubernetes APT repository
+  become: yes
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/{{ kubernetes_vesion }}/deb/ /"
+    state: present
+    update_cache: yes
+
+- name: Install kubectl
+  become: yes
+  apt:
+    name:
+      - kubectl
+    state: present
+    update_cache: yes
+
+- name: Hold kubelet, kubeadm, and kubectl packages
+  become: yes
+  command: apt-mark hold kubectl
+  ignore_errors: yes

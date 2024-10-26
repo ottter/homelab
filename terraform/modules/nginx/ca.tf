@@ -24,3 +24,14 @@ resource "tls_self_signed_cert" "ca_cert" {
   dns_names = ["*.${var.domain_root}"]
 
 }
+
+resource "kubernetes_secret" "cacerts" {
+  metadata {
+    name      = "cacerts"
+    namespace = kubernetes_namespace.ns.metadata[0].name
+  }
+
+  data = {
+    "cacerts.pem" = tls_self_signed_cert.ca_cert.cert_pem
+  }
+}

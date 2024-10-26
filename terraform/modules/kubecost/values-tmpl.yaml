@@ -1,0 +1,16 @@
+kubecostToken: ${kubecost_token}
+persistentVolume:
+  enabled: false
+prometheus:
+  server:
+    persistentVolume:
+      enabled: false
+ingress:
+  className: nginx
+  enabled: true
+  hosts:
+    - "kubecost.${domain_root}"
+  tls:
+    - secretName: ${tls_secret}
+      hosts:
+      - kubecost.${domain_root}

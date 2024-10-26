@@ -1,0 +1,21 @@
+---
+- name: apply common configuration to all nodes
+  hosts: all
+  vars:
+    kubernetes_vesion: "v1.31"
+  roles:
+    - common
+
+- name: apply configuration to control node(s)
+  hosts: control
+  tasks:
+    - name: "Create a k3s cluster"
+      include_role:
+        name: control
+
+    - set_fact:
+        kubeadm_join_command: "{{ kubeadm_join_command.stdout }}"
+      delegate_facts: true      
+      delegate_to: "{{ item }}"
+      with_items: "{{ groups['worker'] }}"  
+      # saving this to make it easier to plug in other nodes in future
