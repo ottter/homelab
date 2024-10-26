@@ -14,15 +14,14 @@ ssh-copy-id [username]@[homelab_server_ip]
 ansible remote -m ping -i hosts
 ```
 
-Set the root password for the homelab server as an environment variable `HOMELAB_PASSWORD`
-
 ```sh
+# Set the root password for the homelab server as an environment variable on host
 export HOMELAB_PASSWORD="password'
 ```
 
-Run the playbook
-
 ```sh
+# Run the playbook
+cd ansible
 ansible-playbook playbook_bootstrap.yml -i hosts --ask-become-pass
 # password will prompt for localhost password
 ```

@@ -15,12 +15,20 @@
     mode: 0755
   delegate_to: localhost
 
+- name: Check if K3s is installed
+  command: k3s --version
+  register: k3s_check
+  failed_when: k3s_check.rc != 0
+  changed_when: false
+  ignore_errors: true  # allow task to continue if k3s is not found
+
 - name: Download K3s installation script
   become: yes
   get_url:
     url: https://get.k3s.io
     dest: /tmp/install_k3s.sh
     mode: '0755'
+  when: k3s_check.rc != 0
 
 - name: Initialize k3s Control Plane
   become: yes
@@ -82,8 +90,8 @@
 - name: Install Helm
   import_tasks: helm.yml
 
-- name: Configure rest of settings
-  import_tasks: config.yml
+# - name: Configure rest of settings
+#   import_tasks: config.yml
 
 - name: Create cronjobs
   import_tasks: cronjobs.yml
