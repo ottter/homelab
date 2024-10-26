@@ -1,3 +1,6 @@
+# contains tokens
+/ansible/env_vars.txt
+
 # Local .terraform directories
 **/.terraform/*
 

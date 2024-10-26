@@ -1,0 +1,15 @@
+- name: Read environment variables from file
+  slurp:
+    src: "{{ playbook_dir }}/env_vars.txt"
+  register: env_file
+
+- name: Parse environment variables
+  set_fact:
+    env_vars: "{{ env_file.content | b64decode | from_yaml }}"
+
+- name: Apply environment variables
+  become: yes
+  template:
+    src: envar.j2
+    dest: /etc/profile.d/custom_env.sh
+  notify: reload_environment

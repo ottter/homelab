@@ -7,11 +7,11 @@
     - common
 
 - name: apply configuration to control node(s)
-  hosts: control
+  hosts: homelab
   tasks:
     - name: "Create a k3s cluster"
       include_role:
-        name: control
+        name: homelab
 
     - set_fact:
         kubeadm_join_command: "{{ kubeadm_join_command.stdout }}"
