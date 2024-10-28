@@ -37,6 +37,7 @@
     K3S_KUBECONFIG_MODE: "644"
     INSTALL_K3S_EXEC: "--disable=traefik"
   register: k8s_init
+  when: k3s_check.rc != 0
   failed_when: k8s_init.rc != 1 and k8s_init.rc != 0
 
 - name: Copy kubeconfig with owner and permissions

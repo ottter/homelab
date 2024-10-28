@@ -1,9 +1,16 @@
-domain_root    = "local"
-kubeconfig     = "~/.kube/config"
+domain_root = "local"
+kubeconfig  = "~/.kube/config"
 
 service_list = [
-  "kubecost"
+  "kubecost",
+  "discord"
 ]
+
+discord_image = "registry/bot-image:latest"
+# discord_token = "TOKEN"
+
+github_username = "USERNAME"
+github_pat      = "PAT"
 
 kubecost_token = "TOKEN"
 

@@ -8,6 +8,11 @@
       - curl
       - gnupg2
       - software-properties-common
+      - git
+      - vim
+      - pip
+      - tmux
+      - docker.io
     state: present
     update_cache: yes
 

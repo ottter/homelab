@@ -16,7 +16,7 @@ ansible remote -m ping -i hosts
 
 ```sh
 # Set the root password for the homelab server as an environment variable on host
-export HOMELAB_PASSWORD="password'
+export HOMELAB_PASSWORD="password"
 ```
 
 ```sh
@@ -24,4 +24,23 @@ export HOMELAB_PASSWORD="password'
 cd ansible
 ansible-playbook playbook_bootstrap.yml -i hosts --ask-become-pass
 # password will prompt for localhost password
+
+cd terraform
+terraform apply -var-file=homelab.tfvars
+```
+
+### Discord-bot
+
+```sh
+# force k3s to pull the latest image and redeploy the pod
+kubectl rollout restart deployment discord-bot
+```
+
+### Enable kubectl autocomplete
+
+```sh
+apt-get install bash-completion
+kubectl completion bash | sudo tee /etc/bash_completion.d/kubectl > /dev/null
+echo 'alias k=kubectl' >>~/.bashrc
+echo 'complete -o default -F __start_kubectl k' >>~/.bashrc
 ```
