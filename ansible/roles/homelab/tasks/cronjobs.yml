@@ -2,17 +2,27 @@
 - name: Create network check script
   become: yes
   copy:
-    dest: /usr/local/bin/check_network.sh
-    mode: '0755'
+    dest: /usr/local/bin/check_wifi.sh
     content: |
       #!/bin/bash
-      if ! ping -c 1 8.8.8.8 &> /dev/null; then
-          systemctl restart networking
+      if ! ping -c 1 -W 2 8.8.8.8 >/dev/null 2>&1; then
+          echo "$(date): Network down, restarting network manager..." >> /var/log/network_check.log
+          sudo systemctl restart NetworkManager  # For NetworkManager-based systems
+          # If using wpa_supplicant + dhclient, use the lines below instead
+          # sudo systemctl restart wpa_supplicant && sudo dhclient -r && sudo dhclient
       fi
+  mode: '0755'
 
-- name: Create cron job to check network every 10 minutes
+- name: Ensure log file exists and set permissions
+  become: yes
+  file:
+    path: /var/log/network_check.log
+    state: touch
+    mode: '0644'
+
+- name: Add cron job for network check script
   become: yes
   cron:
-    name: "Network check"
-    job: "/usr/local/bin/check_network.sh"
-    minute: "*/10"
+    name: "Check Wi-Fi connection every 5 minutes"
+    job: "/usr/local/bin/check_wifi.sh"
+    minute: "*/5"

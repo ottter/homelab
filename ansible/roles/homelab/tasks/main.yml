@@ -77,7 +77,6 @@
     path: /home/{{ ansible_user }}/.bashrc
     line: "alias k='kubectl'"
     create: yes
-  become: false
 
 - name: Get k3s join token
   command: "cat /var/lib/rancher/k3s/server/node-token"
@@ -96,3 +95,6 @@
 
 - name: Create cronjobs
   import_tasks: cronjobs.yml
+
+- name: Create NFS drive
+  import_tasks: nfs.yml

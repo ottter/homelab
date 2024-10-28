@@ -4,6 +4,7 @@ variable "node_ip" {}
 variable "service_list" {}
 variable "kubecost_token" {}
 variable "discord_image" {}
-# variable "discord_token" {}
+variable "media_mount" {}
 variable "github_username" {}
 variable "github_pat" {}
+variable "plex_token" {}

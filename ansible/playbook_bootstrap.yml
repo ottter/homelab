@@ -8,6 +8,8 @@
 
 - name: apply configuration to control node(s)
   hosts: homelab
+  vars:
+    nfs_device: "/dev/sdb1"
   tasks:
     - name: "Create a k3s cluster"
       include_role:

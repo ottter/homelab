@@ -1,0 +1,44 @@
+---
+- name: Create a mount point
+  become: yes
+  file:
+    path: /mnt/plex
+    state: directory
+
+- name: Mount {{ nfs_device }} to /mnt/plex
+  become: yes
+  mount:
+    path: /mnt/plex
+    src: "{{ nfs_device }}"
+    fstype: xfs
+    state: mounted
+
+- name: Ensure {{ nfs_device }} is mounted on boot
+  become: yes
+  mount:
+    path: /mnt/plex
+    src: "{{ nfs_device }}"
+    fstype: xfs
+    opts: defaults
+    state: mounted
+    dump: 0
+    passno: 2
+
+- name: Install NFS server
+  become: yes
+  apt:
+    name: nfs-kernel-server
+    state: present
+    update_cache: yes
+
+- name: Configure NFS export for plex
+  become: yes
+  lineinfile:
+    path: /etc/exports
+    line: "/mnt/plex *(rw,sync,no_subtree_check)"
+
+- name: Restart NFS service
+  become: yes
+  service:
+    name: nfs-kernel-server
+    state: restarted
