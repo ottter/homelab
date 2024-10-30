@@ -29,53 +29,60 @@ resource "kubernetes_deployment" "plex" {
       }
 
       spec {
-        hostname = "plex"
-
         container {
           name  = "plex"
-          image = var.plex_image
+          image = "lscr.io/linuxserver/plex:latest"
 
-          port {
-            container_port = 32400
+          env {
+            name  = "PUID"
+            value = "1000"
           }
-
+          env {
+            name  = "PGID"
+            value = "1000"
+          }
+          env {
+            name  = "TZ"
+            value = "Etc/UTC"
+          }
+          env {
+            name  = "VERSION"
+            value = "docker"
+          }
           env {
             name  = "PLEX_CLAIM"
             value = var.plex_token
           }
-
           volume_mount {
-            name       = "config"
+            name       = "plex-config"
             mount_path = "/config"
           }
-
           volume_mount {
-            name       = "transcode"
-            mount_path = "/transcode"
+            name       = "tv-series"
+            mount_path = "/tv"
           }
-
           volume_mount {
-            name       = "media"
-            mount_path = "/media"
+            name       = "movies"
+            mount_path = "/movies"
           }
         }
 
         volume {
-          name = "config"
-          persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.plex_config_pvc.metadata[0].name
+          name = "plex-config"
+          host_path {
+            path = var.plex_path_config
           }
         }
-
         volume {
-          name = "transcode"
-          empty_dir {}
+          name = "tv-series"
+          host_path {
+            path = var.plex_path_tv
+          }
         }
-
         volume {
-          name = "media"
-          persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.plex_media_pvc.metadata[0].name
+          name = "movies"
+          host_path {
+            path = var.plex_path_movies
           }
         }
       }
