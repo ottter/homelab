@@ -1,5 +1,9 @@
 # Single node k3s homelab
 
+## Prereq notes
+
+- Ansible creates an NFS device out of `/dev/sdb1` (default variable). This should be manually done if not using Ansible. Including the directory structure that Plex requires
+
 ## Init
 
 ```sh
@@ -36,13 +40,22 @@ terraform apply -var-file=homelab.tfvars
 kubectl rollout restart deployment discord-bot
 ```
 
-### Plex preconfiguration
+### Plex: Preconfiguration
 
 This is utilizing the docker image [lscr.io/linuxserver/plex:latest](https://hub.docker.com/r/linuxserver/plex) and assumes that the 1000:1000 account is the one managing plex. change as needed
 
 Getting the [Plex Claim token](https://www.plex.tv/claim/) is optional but preferred for easier setup. It lasts for 4 minutes so make it quick.
 
 ```sh
+/mnt/
+└── plex
+    ├── config
+    ├── movies
+    └── tv
+```
+
+```sh
+# This is completed by Ansible: homelab/task/nfs.yml
 sudo chown -R 1000:1000 /mnt/plex
 sudo chmod -R 7555 /mnt/plex
 cd /mnt/plex
@@ -50,6 +63,14 @@ mkdir config movies tv
 ```
 
 Access Plex by going to [http://{node-ip}:32000/web/](https://www.plex.tv/)
+
+### Plex: Moving media
+
+Moving a file from host computer to server:
+```sh
+cd /mnt/c/Users/James/Videos/Media
+rsync -av --progress "Ghost In The Shell 1995.mp4" james@lab:/mnt/plex/movies/
+```
 
 ### Enable kubectl autocomplete
 

@@ -14,12 +14,7 @@ github_pat      = "PAT"
 
 kubecost_token = "TOKEN"
 
-plex_token       = "TOKEN" # https://www.plex.tv/claim/
-# plex_puid        = 1000
-# plex_pgid        = 1000
-plex_path_config = "/mnt/plex/config"
-plex_path_movies = "/mnt/plex/movies"
-plex_path_tv     = "/mnt/plex/tv"
+plex_token = "TOKEN" # https://www.plex.tv/claim/
 
 # List of IP addresses associated to Control and Worker nodes
 node_ip = ["192.168.0.144"]

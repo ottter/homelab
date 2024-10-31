@@ -42,3 +42,21 @@
   service:
     name: nfs-kernel-server
     state: restarted
+
+- name: Set ownership for /mnt/plex
+  become: yes
+  command: sudo chown -R 1000:1000 /mnt/plex
+
+- name: Set permissions for /mnt/plex
+  become: yes
+  command: sudo chmod -R 755 /mnt/plex
+
+- name: Create directories inside /mnt/plex
+  become: yes
+  file:
+    path: "/mnt/plex/{{ item }}"
+    state: directory
+  loop:
+    - config
+    - movies
+    - tv

@@ -13,6 +13,8 @@
       - pip
       - tmux
       - docker.io
+      - tree
+      - rsync
     state: present
     update_cache: yes
 

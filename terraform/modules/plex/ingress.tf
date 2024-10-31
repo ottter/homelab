@@ -52,3 +52,27 @@ resource "kubernetes_service" "plex" {
 #     }
 #   }
 # }
+
+# resource "kubernetes_service" "plex" {
+#   metadata {
+#     name      = "plex-service"
+#     namespace = kubernetes_namespace.ns.metadata[0].name
+#     labels = {
+#       app = "plex"
+#     }
+#   }
+
+#   spec {
+#     selector = {
+#       app = "plex"
+#     }
+
+#     port {
+#       name        = "http"
+#       port        = 32400 # Plex default port
+#       target_port = 32400
+#     }
+
+#     type = "ClusterIP" # Updated to ClusterIP for internal access
+#   }
+# }
