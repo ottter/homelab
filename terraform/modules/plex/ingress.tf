@@ -16,7 +16,7 @@ resource "kubernetes_service" "plex" {
       name        = "http"
       port        = 32400
       target_port = 32400
-      node_port  = 32000
+      node_port   = 32000
     }
 
     type = "NodePort"
