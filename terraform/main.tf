@@ -30,3 +30,11 @@ module "plex" {
   plex_path_tv     = var.plex_path_tv
   plex_path_movies = var.plex_path_movies
 }
+
+module "transmission" {
+  source         = "./modules/transmission"
+  count          = contains(var.service_list, "transmission") ? 1 : 0
+  domain_root    = var.domain_root
+  plexdir_movies = var.plex_path_movies
+  plexdir_tv     = var.plex_path_tv
+}

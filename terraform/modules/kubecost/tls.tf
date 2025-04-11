@@ -6,7 +6,7 @@ resource "tls_private_key" "service_key" {
 resource "tls_self_signed_cert" "service_cert" {
   private_key_pem = tls_private_key.service_key.private_key_pem
 
-  validity_period_hours = 8760 # 1 year
+  validity_period_hours = 8760
 
   subject {
     common_name  = "kubecost.${var.domain_root}"

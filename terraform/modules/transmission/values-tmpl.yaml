@@ -1,0 +1,50 @@
+# https://github.com/truecharts/public/blob/master/charts/stable/transmission/values.yaml
+persistence:
+  config:
+    enabled: true
+    hostPath: ${transmission_config}
+    mountPath: "/config"
+  downloads:
+    enabled: true
+    type: hostPath
+    hostPath: ${plexdir_movies}
+    mountPath: "/downloads/complete"
+    readOnly: false
+  incomplete:
+    enabled: true
+    type: hostPath
+    hostPath: "/mnt/plex/incomplete"
+    mountPath: "/downloads/incomplete"
+    readOnly: false
+
+workload:
+  main:
+    podSpec:
+      containers:
+        main:
+          env:
+            USER: ${username}
+            PASS: ${password}
+
+securityContext:
+  container:
+    readOnlyRootFilesystem: false
+    runAsUser: 0
+    runAsGroup: 0
+
+ingress:
+  main:
+    ingressClassName: nginx
+    enabled: true
+    integrations:
+      traefik:
+        enabled: false
+    hosts:
+      - host: ${full_path}
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - ${full_path}
+        secretName: ${tls_secret}
