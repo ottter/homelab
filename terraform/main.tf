@@ -31,6 +31,17 @@ module "plex" {
   plex_path_movies = var.plex_path_movies
 }
 
+module "radarr" {
+  source               = "./modules/radarr"
+  count                = contains(var.service_list, "radarr") ? 1 : 0
+  domain_root          = var.domain_root
+  server_ip            = element(var.node_ip, 0)
+  plexdir_movies       = var.plex_path_movies
+  transmission_enabled = contains(var.service_list, "transmission") ? true : false
+  transmission_user    = var.transmission_user
+  transmission_pass    = var.transmission_pass
+}
+
 module "transmission" {
   source         = "./modules/transmission"
   count          = contains(var.service_list, "transmission") ? 1 : 0

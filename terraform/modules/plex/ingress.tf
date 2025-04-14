@@ -3,7 +3,7 @@ resource "kubernetes_service" "plex" {
     name      = "plex-service"
     namespace = kubernetes_namespace.ns.metadata[0].name
     annotations = {
-      "kubernetes.io/ingress.class" : "nginx" # Using Nginx ingress
+      "kubernetes.io/ingress.class" : "nginx"
     }
   }
 

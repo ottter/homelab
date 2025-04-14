@@ -67,6 +67,7 @@ Access Plex by going to [http://{node-ip}:32000/web/](https://www.plex.tv/)
 ### Plex: Moving media
 
 Moving a file from host computer to server:
+
 ```sh
 cd /mnt/c/Users/James/Videos/Media
 rsync -av --progress "Ghost In The Shell 1995.mp4" james@lab:/mnt/plex/movies/
