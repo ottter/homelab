@@ -7,13 +7,13 @@ persistence:
   downloads:
     enabled: true
     type: hostPath
-    hostPath: ${plexdir_movies}
+    hostPath: "${plexdir_downloads}/complete"
     mountPath: "/downloads/complete"
     readOnly: false
   incomplete:
     enabled: true
     type: hostPath
-    hostPath: "/mnt/plex/incomplete"
+    hostPath: "${plexdir_downloads}/incomplete"
     mountPath: "/downloads/incomplete"
     readOnly: false
 

@@ -51,14 +51,16 @@
   become: yes
   command: sudo chmod -R 755 /mnt/plex
 
-- name: Create directories inside /mnt/plex
+- name: create media and download directories inside /mnt/plex
   become: yes
   file:
     path: "/mnt/plex/{{ item }}"
     state: directory
+    mode: '0755'
   loop:
+    - downloads/incomplete
+    - downloads/complete
+    - media/movies
+    - media/tv
     - config
-    - movies
-    - tv
-    - incomplete
     - transmission/config

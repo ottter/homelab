@@ -15,8 +15,12 @@ enable_kubecost = false
 kubecost_token  = "KUBECOST_TOKEN"
 
 # Module: Plex
-enable_plex = false
-plex_token  = "PLEX_TOKEN" # https://www.plex.tv/claim/
+enable_plex         = false
+plex_token          = "PLEX_TOKEN" # https://www.plex.tv/claim/
+plex_path_config    = "/mnt/plex/config"
+plex_path_downloads = "/mnt/plex/downloads"
+plex_path_movies    = "/mnt/plex/media/movies"
+plex_path_tv        = "/mnt/plex/media/tv"
 
 # Module: Radarr
 enable_radarr = false

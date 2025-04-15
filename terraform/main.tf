@@ -36,7 +36,7 @@ module "radarr" {
   count                = var.enable_radarr ? 1 : 0
   domain_root          = var.domain_root
   server_ip            = element(var.node_ip, 0)
-  plexdir_movies       = var.plex_path_movies
+  plexdir_movies       = "/mnt/plex/"
   transmission_enabled = var.enable_transmission
   transmission_user    = var.transmission_user
   transmission_pass    = var.transmission_pass
@@ -56,9 +56,8 @@ module "sonarr" {
 }
 
 module "transmission" {
-  source         = "./modules/transmission"
-  count          = var.enable_transmission ? 1 : 0
-  domain_root    = var.domain_root
-  plexdir_movies = var.plex_path_movies
-  plexdir_tv     = var.plex_path_tv
+  source            = "./modules/transmission"
+  count             = var.enable_transmission ? 1 : 0
+  domain_root       = var.domain_root
+  plexdir_downloads = var.plex_path_downloads
 }

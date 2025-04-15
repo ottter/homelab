@@ -4,11 +4,8 @@ variable "domain_root" {
 variable "domain_sub" {
   default = "transmission"
 }
-variable "plexdir_movies" {
-  default = "/mnt/plex/movies"
-}
-variable "plexdir_tv" {
-  default = "/mnt/plex/tv"
+variable "plexdir_downloads" {
+  default = "/mnt/plex/downloads"
 }
 variable "transmission_config" {
   default = "/mnt/plex/transmission/config"

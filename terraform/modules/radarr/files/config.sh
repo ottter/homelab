@@ -6,6 +6,7 @@ password=${3:-password}
 transmission_ns=${4:-transmission}
 transmission_port=${5:-9091}
 domain_root=${6:-local}
+plex_mount="/mnt/plex"
 
 transmission_ns=$(echo "$transmission_ns" | tr -d '\r')
 transmission_data=$(jq -n --arg username "$username" \
@@ -27,11 +28,18 @@ transmission_data=$(jq -n --arg username "$username" \
     { "name": "addPaused", "value": false },
     { "name": "useSsl", "value": false },
     { "name": "movieCategory", "value": "" },
-    { "name": "movieDirectory", "value": "/media/radarr"}
+    { "name": "movieDirectory", "value": ""}
   ],
   implementation: "Transmission",
   configContract: "TransmissionSettings",
   downloadClientType: "Transmission"
+}')
+
+remotepath_data=$(jq -n --arg transmission_ns "$transmission_ns" \
+'{
+  "host": ("transmission." + $transmission_ns + ".svc.cluster.local"),
+  "localPath": "/media/downloads/complete/",
+  "remotePath": "/downloads/complete"
 }')
 
 # Get the name of the Radarr pod
@@ -46,4 +54,10 @@ curl -X POST "https://$namespace.$domain_root/api/v3/downloadclient" \
   -H "X-Api-Key: $api_key" \
   -H "Content-Type: application/json" \
   --data "$transmission_data" \
+  --insecure
+
+curl -X POST "https://$namespace.$domain_root/api/v3/remotepathmapping" \
+  -H "X-Api-Key: $api_key" \
+  -H "Content-Type: application/json" \
+  --data "$remotepath_data" \
   --insecure

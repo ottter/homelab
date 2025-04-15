@@ -47,11 +47,13 @@ This is utilizing the docker image [lscr.io/linuxserver/plex:latest](https://hub
 Getting the [Plex Claim token](https://www.plex.tv/claim/) is optional but preferred for easier setup. It lasts for 4 minutes so make it quick.
 
 ```sh
-/mnt/
-└── plex
-    ├── config
-    ├── movies
-    └── tv
+/mnt/plex/
+├── downloads/         # where Transmission puts incomplete and complete downloads
+│   ├── incomplete/
+│   └── complete/
+├── media/
+│   ├── movies/        # uRadarr
+│   └── tv/            # Sonarr
 ```
 
 ```sh

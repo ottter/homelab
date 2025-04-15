@@ -27,11 +27,18 @@ transmission_data=$(jq -n --arg username "$username" \
     { "name": "addPaused", "value": false },
     { "name": "useSsl", "value": false },
     { "name": "tvCategory", "value": "" },
-    { "name": "tvDirectory", "value": "/media/sonarr"}
+    { "name": "tvDirectory", "value": ""}
   ],
   implementation: "Transmission",
   configContract: "TransmissionSettings",
   downloadClientType: "Transmission"
+}')
+
+remotepath_data=$(jq -n --arg transmission_ns "$transmission_ns" \
+'{
+  "host": ("transmission." + $transmission_ns + ".svc.cluster.local"),
+  "localPath": "/media/downloads/complete/",
+  "remotePath": "/downloads/complete"
 }')
 
 # Get the name of the Sonarr pod
@@ -46,4 +53,10 @@ curl -X POST "https://$namespace.$domain_root/api/v3/downloadclient" \
   -H "X-Api-Key: $api_key" \
   -H "Content-Type: application/json" \
   --data "$transmission_data" \
+  --insecure
+
+  curl -X POST "https://$namespace.$domain_root/api/v3/remotepathmapping" \
+  -H "X-Api-Key: $api_key" \
+  -H "Content-Type: application/json" \
+  --data "$remotepath_data" \
   --insecure

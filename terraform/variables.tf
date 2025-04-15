@@ -31,6 +31,10 @@ variable "plex_path_config" {
   default     = "/mnt/plex/config"
   description = "Filepath on NFS share for Plex config"
 }
+variable "plex_path_downloads" {
+  default     = "/mnt/plex/downloads"
+  description = ""
+}
 variable "plex_path_tv" {
   default     = "/mnt/plex/tv"
   description = "Filepath on NFS share for Plex tv"
