@@ -1,0 +1,37 @@
+# https://github.com/truecharts/public/blob/master/charts/stable/sonarr/values.yaml
+persistence:
+  media:
+    enabled: true
+    type: nfs
+    path: ${plexdir_tv}
+    server: ${server_ip}
+    mountPath: /media
+
+workload:
+  main:
+    podSpec:
+      containers:
+        main:
+          env:
+            SONARR__APP__THEME: dark
+
+metrics:
+  main:
+    enabled: false
+
+ingress:
+  main:
+    ingressClassName: nginx
+    enabled: true
+    integrations:
+      traefik:
+        enabled: false
+    hosts:
+      - host: ${full_path}
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - ${full_path}
+        secretName: ${tls_secret}

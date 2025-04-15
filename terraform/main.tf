@@ -40,6 +40,19 @@ module "radarr" {
   transmission_enabled = var.enable_transmission
   transmission_user    = var.transmission_user
   transmission_pass    = var.transmission_pass
+  depends_on           = [module.transmission]
+}
+
+module "sonarr" {
+  source               = "./modules/sonarr"
+  count                = var.enable_sonarr ? 1 : 0
+  domain_root          = var.domain_root
+  server_ip            = element(var.node_ip, 0)
+  plexdir_tv           = var.plex_path_tv
+  transmission_enabled = var.enable_transmission
+  transmission_user    = var.transmission_user
+  transmission_pass    = var.transmission_pass
+  depends_on           = [module.transmission]
 }
 
 module "transmission" {

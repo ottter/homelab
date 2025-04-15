@@ -3,11 +3,11 @@ variable "domain_root" {
   type    = string
 }
 variable "domain_sub" {
-  default = "radarr"
+  default = "sonarr"
   type    = string
 }
-variable "plexdir_movies" {
-  default = "/mnt/plex/movies"
+variable "plexdir_tv" {
+  default = "/mnt/plex/tv"
   type    = string
 }
 variable "transmission_user" {

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-namespace=${1:-radarr}
+namespace=${1:-sonarr}
 username=${2:-admin}
 password=${3:-password}
 transmission_ns=${4:-transmission}
@@ -26,22 +26,22 @@ transmission_data=$(jq -n --arg username "$username" \
     { "name": "password", "value": $password },
     { "name": "addPaused", "value": false },
     { "name": "useSsl", "value": false },
-    { "name": "movieCategory", "value": "" },
-    { "name": "movieDirectory", "value": "/media/radarr"}
+    { "name": "tvCategory", "value": "" },
+    { "name": "tvDirectory", "value": "/media/sonarr"}
   ],
   implementation: "Transmission",
   configContract: "TransmissionSettings",
   downloadClientType: "Transmission"
 }')
 
-# Get the name of the Radarr pod
-radarr_pod=$(kubectl get pods -n $namespace -o jsonpath='{.items[0].metadata.name}')
+# Get the name of the Sonarr pod
+sonarr_pod=$(kubectl get pods -n $namespace -o jsonpath='{.items[0].metadata.name}')
 
-# Get the API key from the Radarr pod
-api_key=$(kubectl exec -n $namespace "$radarr_pod" -- \
+# Get the API key from the Sonarr pod
+api_key=$(kubectl exec -n $namespace "$sonarr_pod" -- \
   cat /config/config.xml | grep '<ApiKey>' | sed -E 's:.*<ApiKey>(.*)</ApiKey>.*:\1:')
 
-# cURL request to add Transmission as a download client on Radarr
+# cURL request to add Transmission as a download client on Sonarr
 curl -X POST "https://$namespace.$domain_root/api/v3/downloadclient" \
   -H "X-Api-Key: $api_key" \
   -H "Content-Type: application/json" \

@@ -10,18 +10,21 @@ github_username = "GITHUB_USERNAME"
 github_pat      = "GITHUB_PAT"
 discord_image   = "GITHUB_CONTAINER_REGISTRY_IMAGE"
 
+# Module: Kubecost
+enable_kubecost = false
+kubecost_token  = "KUBECOST_TOKEN"
+
 # Module: Plex
 enable_plex = false
 plex_token  = "PLEX_TOKEN" # https://www.plex.tv/claim/
 
-# Module: Kubecost
-enable_kubecost = false
-kubecost_token  = "KUBECOST_TOKEN"
+# Module: Radarr
+enable_radarr = false
+
+# Module: Sonarr
+enable_sonarr = false
 
 # Module: Transmission
 enable_transmission = false
 transmission_user   = "admin"
 transmission_pass   = "password"
-
-# Module: Radarr
-enable_radarr = false

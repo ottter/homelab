@@ -72,3 +72,8 @@ variable "enable_radarr" {
   description = "Enable the Radarr module"
   type        = bool
 }
+variable "enable_sonarr" {
+  default     = false
+  description = "Enable the Sonarr module"
+  type        = bool
+}
