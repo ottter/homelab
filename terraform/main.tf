@@ -6,7 +6,7 @@ module "nginx" {
 
 module "kubecost" {
   source         = "./modules/kubecost"
-  count          = contains(var.service_list, "kubecost") ? 1 : 0
+  count          = var.enable_kubecost ? 1 : 0
   domain_root    = var.domain_root
   kubecost_token = var.kubecost_token
   node_ip        = element(var.node_ip, 0)
@@ -14,7 +14,7 @@ module "kubecost" {
 
 module "discord" {
   source          = "./modules/discord"
-  count           = contains(var.service_list, "discord") ? 1 : 0
+  count           = var.enable_discord ? 1 : 0
   discord_image   = var.discord_image
   github_username = var.github_username
   github_pat      = var.github_pat
@@ -22,7 +22,7 @@ module "discord" {
 
 module "plex" {
   source           = "./modules/plex"
-  count            = contains(var.service_list, "plex") ? 1 : 0
+  count            = var.enable_plex ? 1 : 0
   domain_root      = var.domain_root
   server_ip        = element(var.node_ip, 0)
   plex_token       = var.plex_token
@@ -33,18 +33,18 @@ module "plex" {
 
 module "radarr" {
   source               = "./modules/radarr"
-  count                = contains(var.service_list, "radarr") ? 1 : 0
+  count                = var.enable_radarr ? 1 : 0
   domain_root          = var.domain_root
   server_ip            = element(var.node_ip, 0)
   plexdir_movies       = var.plex_path_movies
-  transmission_enabled = contains(var.service_list, "transmission") ? true : false
+  transmission_enabled = var.enable_transmission
   transmission_user    = var.transmission_user
   transmission_pass    = var.transmission_pass
 }
 
 module "transmission" {
   source         = "./modules/transmission"
-  count          = contains(var.service_list, "transmission") ? 1 : 0
+  count          = var.enable_transmission ? 1 : 0
   domain_root    = var.domain_root
   plexdir_movies = var.plex_path_movies
   plexdir_tv     = var.plex_path_tv
