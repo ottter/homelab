@@ -29,10 +29,16 @@ resource "null_resource" "configure_sonarr" {
   count = var.transmission_enabled ? 1 : 0
 
   provisioner "local-exec" {
-    command = <<-EOT
-      bash ${path.module}/files/config.sh ${kubernetes_namespace.ns.metadata[0].name} ${var.transmission_user} ${var.transmission_pass} ${var.transmission_ns}
-    EOT
+    command     = "${path.module}/files/config.sh $NS $TUSER $TPASS $TNS"
+    interpreter = ["/bin/bash", "-c"]
+    environment = {
+      NS    = kubernetes_namespace.ns.metadata[0].name
+      TUSER = var.transmission_user
+      TPASS = var.transmission_pass
+      TNS   = var.transmission_ns
+    }
   }
+
 
   depends_on = [helm_release.sonarr]
 }
