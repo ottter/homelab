@@ -56,9 +56,9 @@ variable "enable_discord" {
   description = "Enable the Discord module"
   type        = bool
 }
-variable "enable_plex" {
+variable "enable_homepage" {
   default     = false
-  description = "Enable the Plex module"
+  description = "Enable the Homepage module"
   type        = bool
 }
 variable "enable_kubecost" {
@@ -66,9 +66,9 @@ variable "enable_kubecost" {
   description = "Enable the Kubecost module"
   type        = bool
 }
-variable "enable_transmission" {
+variable "enable_plex" {
   default     = false
-  description = "Enable the Transmission module"
+  description = "Enable the Plex module"
   type        = bool
 }
 variable "enable_radarr" {
@@ -79,5 +79,10 @@ variable "enable_radarr" {
 variable "enable_sonarr" {
   default     = false
   description = "Enable the Sonarr module"
+  type        = bool
+}
+variable "enable_transmission" {
+  default     = false
+  description = "Enable the Transmission module"
   type        = bool
 }

@@ -1,12 +1,15 @@
+# TODO List
+
 General:
-  - Documentation (tf-docs)
-  - Sonarr
-  - Homepage
+
+- Documentation (tf-docs)
+- Sonarr
+- Homepage
+
 Radarr:
-  - Add proper way to wait for Transmission (if enabled)
-  - Movie directory (Plex) might not be added properly
-  - Autogen or disable username req on first access
-  - Errors: 
-    - Remote download client Transmission places downloads in /downloads/complete/radarr but this directory does not appear to exist. Likely missing or incorrect remote path mapping.	
-    - No indexers available with RSS sync enabled, Radarr will not grab new releases automatically	
-    - No indexers available with Automatic Search enabled, Radarr will not provide any automatic search results	
+
+- I dont think i left plexdir_movies var in good spot. review this
+- Autogen or disable username req on first access
+- Errors:
+  - No indexers available with RSS sync enabled, Radarr will not grab new releases automatically
+  - No indexers available with Automatic Search enabled, Radarr will not provide any automatic search results

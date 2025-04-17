@@ -49,6 +49,8 @@ radarr_pod=$(kubectl get pods -n $namespace -o jsonpath='{.items[0].metadata.nam
 api_key=$(kubectl exec -n $namespace "$radarr_pod" -- \
   cat /config/config.xml | grep '<ApiKey>' | sed -E 's:.*<ApiKey>(.*)</ApiKey>.*:\1:')
 
+kubectl create secret generic homepage-api-key-radarr --from-literal=apiKey="$api_key" -n $namespace --dry-run=client -o yaml | kubectl apply -f -
+
 # cURL request to add Transmission as a download client on Radarr
 curl -X POST "https://$namespace.$domain_root/api/v3/downloadclient" \
   -H "X-Api-Key: $api_key" \

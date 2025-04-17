@@ -1,0 +1,29 @@
+# https://truecharts.org/charts/stable/homepage/hp-integration/
+# https://truecharts.org/common/ingress/homepage/
+# https://github.com/truecharts/public/blob/master/charts/stable/homepage/values.yaml
+
+workload:
+  main:
+    podSpec:
+      containers:
+        main:
+          env:
+            HOMEPAGE_ALLOWED_HOSTS: ${full_path}
+ingress:
+  main:
+    ingressClassName: nginx
+    enabled: true
+    integrations:
+      homepage:
+        enabled: true
+      traefik:
+        enabled: false
+    hosts:
+      - host: ${full_path}
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - ${full_path}
+        secretName: ${tls_secret}

@@ -20,6 +20,13 @@ module "discord" {
   github_pat      = var.github_pat
 }
 
+module "homepage" {
+  source           = "./modules/homepage"
+  count            = var.enable_homepage ? 1 : 0
+  domain_root      = var.domain_root
+  server_ip        = element(var.node_ip, 0)
+}
+
 module "plex" {
   source           = "./modules/plex"
   count            = var.enable_plex ? 1 : 0

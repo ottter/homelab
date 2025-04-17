@@ -10,6 +10,9 @@ github_username = "GITHUB_USERNAME"
 github_pat      = "GITHUB_PAT"
 discord_image   = "GITHUB_CONTAINER_REGISTRY_IMAGE"
 
+# Module: Homepage
+enable_homepage = true
+
 # Module: Kubecost
 enable_kubecost = false
 kubecost_token  = "KUBECOST_TOKEN"
