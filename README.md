@@ -48,12 +48,13 @@ Getting the [Plex Claim token](https://www.plex.tv/claim/) is optional but prefe
 
 ```sh
 /mnt/plex/
-├── downloads/         # where Transmission puts incomplete and complete downloads
+├── downloads/         # Transmission temp storage
 │   ├── incomplete/
 │   └── complete/
 ├── media/
-│   ├── movies/        # uRadarr
+│   ├── movies/        # Radarr
 │   └── tv/            # Sonarr
+├── config/
 ```
 
 ```sh

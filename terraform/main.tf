@@ -21,10 +21,10 @@ module "discord" {
 }
 
 module "homepage" {
-  source           = "./modules/homepage"
-  count            = var.enable_homepage ? 1 : 0
-  domain_root      = var.domain_root
-  server_ip        = element(var.node_ip, 0)
+  source      = "./modules/homepage"
+  count       = var.enable_homepage ? 1 : 0
+  domain_root = var.domain_root
+  server_ip   = element(var.node_ip, 0)
 }
 
 module "plex" {

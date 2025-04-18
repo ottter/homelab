@@ -48,6 +48,7 @@ sonarr_pod=$(kubectl get pods -n $namespace -o jsonpath='{.items[0].metadata.nam
 api_key=$(kubectl exec -n $namespace "$sonarr_pod" -- \
   cat /config/config.xml | grep '<ApiKey>' | sed -E 's:.*<ApiKey>(.*)</ApiKey>.*:\1:')
 
+# Create a secret which is used by Homepage
 kubectl create secret generic homepage-api-key-sonarr --from-literal=apiKey="$api_key" -n $namespace --dry-run=client -o yaml | kubectl apply -f -
 
 # cURL request to add Transmission as a download client on Sonarr

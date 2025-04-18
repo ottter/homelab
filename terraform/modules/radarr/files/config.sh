@@ -6,7 +6,6 @@ password=${3:-password}
 transmission_ns=${4:-transmission}
 transmission_port=${5:-9091}
 domain_root=${6:-local}
-plex_mount="/mnt/plex"
 
 transmission_ns=$(echo "$transmission_ns" | tr -d '\r')
 transmission_data=$(jq -n --arg username "$username" \
@@ -49,6 +48,7 @@ radarr_pod=$(kubectl get pods -n $namespace -o jsonpath='{.items[0].metadata.nam
 api_key=$(kubectl exec -n $namespace "$radarr_pod" -- \
   cat /config/config.xml | grep '<ApiKey>' | sed -E 's:.*<ApiKey>(.*)</ApiKey>.*:\1:')
 
+# Create a secret which is used by Homepage
 kubectl create secret generic homepage-api-key-radarr --from-literal=apiKey="$api_key" -n $namespace --dry-run=client -o yaml | kubectl apply -f -
 
 # cURL request to add Transmission as a download client on Radarr

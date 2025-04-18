@@ -10,6 +10,10 @@ variable "plexdir_tv" {
   default = "/mnt/plex/tv"
   type    = string
 }
+variable "plexdir_root" {
+  default     = "/mnt/plex"
+  description = "Filepath on NFS share for Plex root location"
+}
 variable "transmission_user" {
   default = "admin"
   type    = string

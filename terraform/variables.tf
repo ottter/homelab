@@ -24,7 +24,18 @@ variable "github_username" {
 variable "github_pat" {
   description = "Github PAT to access image on Github Container Registry"
 }
+variable "apikey_openweathermap" {
+  default     = "apikey"
+  description = "API key from https://openweathermap.org/"
+  type        = string
+}
+variable "apikey_weatherapi" {
+  default     = "apikey"
+  description = "API key from https://www.weatherapi.com/"
+  type        = string
+}
 variable "plex_token" {
+  default     = "apikey"
   description = "Create a Plex account and get a token from https://www.plex.tv/claim/"
 }
 variable "plex_path_config" {
@@ -42,6 +53,10 @@ variable "plex_path_tv" {
 variable "plex_path_movies" {
   default     = "/mnt/plex/movies"
   description = "Filepath on NFS share for Plex movies"
+}
+variable "plex_path_root" {
+  default     = "/mnt/plex"
+  description = "Filepath on NFS share for Plex root location"
 }
 variable "transmission_user" {
   default     = "admin"

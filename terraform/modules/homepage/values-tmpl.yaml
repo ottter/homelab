@@ -9,6 +9,14 @@ workload:
         main:
           env:
             HOMEPAGE_ALLOWED_HOSTS: ${full_path}
+
+configmap:
+  config:
+    enabled: false
+    nameOverride: homepage-config
+    mountPath: /app/config
+forceConfigFromValues: false
+
 ingress:
   main:
     ingressClassName: nginx
