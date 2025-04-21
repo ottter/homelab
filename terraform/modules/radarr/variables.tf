@@ -6,6 +6,10 @@ variable "domain_sub" {
   default = "radarr"
   type    = string
 }
+variable "homepage_enabled" {
+  default = true
+  type = bool
+}
 variable "plexdir_movies" {
   default = "/mnt/plex/movies"
   type    = string

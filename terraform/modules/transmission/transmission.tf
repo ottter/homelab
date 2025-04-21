@@ -19,6 +19,7 @@ resource "helm_release" "transmission" {
     templatefile("${path.module}/values-tmpl.yaml", {
       tls_secret          = kubernetes_secret.tls.metadata[0].name
       full_path           = "${var.domain_sub}.${var.domain_root}"
+      homepage_enabled    = var.homepage_enabled
       plexdir_downloads   = "${var.plexdir_downloads}"
       transmission_config = "${var.transmission_config}"
       username            = "${var.username}"

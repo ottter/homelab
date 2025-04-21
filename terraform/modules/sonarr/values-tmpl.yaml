@@ -24,6 +24,8 @@ ingress:
     ingressClassName: nginx
     enabled: true
     integrations:
+      homepage:
+        enabled: ${homepage_enabled}
       traefik:
         enabled: false
     hosts:

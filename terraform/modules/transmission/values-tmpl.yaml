@@ -36,7 +36,11 @@ ingress:
   main:
     ingressClassName: nginx
     enabled: true
+    # annotations:
+    #   nginx.ingress.kubernetes.io/whitelist-source-range: "192.168.0.0/24"
     integrations:
+      homepage:
+        enabled: ${homepage_enabled}
       traefik:
         enabled: false
     hosts:

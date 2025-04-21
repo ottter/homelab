@@ -4,6 +4,10 @@ variable "domain_root" {
 variable "domain_sub" {
   default = "transmission"
 }
+variable "homepage_enabled" {
+  default = true
+  type = bool
+}
 variable "plexdir_downloads" {
   default = "/mnt/plex/downloads"
 }

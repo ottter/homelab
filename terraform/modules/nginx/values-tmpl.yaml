@@ -1,12 +1,3 @@
-# technically only enable-ssl-passthrough is a requirement
 controller:
   extraArgs:
     enable-ssl-passthrough: true
-  # extraVolumes:
-  #   - name: ${certs_secret}
-  #     secret:
-  #       secretName: ${certs_secret}
-  # extraVolumeMounts:
-  #   - name: ${certs_secret}
-  #     mountPath: /etc/nginx/ssl
-  #     readOnly: true

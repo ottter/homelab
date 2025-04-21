@@ -19,6 +19,7 @@ resource "helm_release" "radarr" {
     templatefile("${path.module}/values-tmpl.yaml", {
       tls_secret     = kubernetes_secret.tls.metadata[0].name
       full_path      = "${var.domain_sub}.${var.domain_root}"
+      homepage_enabled    = var.homepage_enabled
       plexdir_movies = "${var.plexdir_movies}"
       server_ip      = "${var.server_ip}"
     })

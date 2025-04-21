@@ -6,6 +6,10 @@ variable "domain_sub" {
   default = "sonarr"
   type    = string
 }
+variable "homepage_enabled" {
+  default = true
+  type = bool
+}
 variable "plexdir_tv" {
   default = "/mnt/plex/tv"
   type    = string
