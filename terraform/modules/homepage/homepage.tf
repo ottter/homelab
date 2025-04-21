@@ -2,7 +2,9 @@ locals {
   bookmarks_yaml  = file("${path.module}/configs/bookmarks-tmpl.yaml")
   kubernetes_yaml = file("${path.module}/configs/kubernetes-tmpl.yaml")
   services_yaml = templatefile("${path.module}/configs/services-tmpl.yaml", {
-    domain_root = var.domain_root
+    domain_root   = var.domain_root
+    apikey_sonarr = var.apikey_sonarr
+    apikey_radarr = var.apikey_radarr
   })
   settings_yaml = templatefile("${path.module}/configs/settings-tmpl.yaml", {
     openweathermap = var.apikey_openweathermap

@@ -6,12 +6,24 @@ variable "domain_sub" {
   default = "homepage"
   type    = string
 }
-variable "apikey_openweathermap" {
-  default = "apikey"
+variable "apikey_sonarr" {
+  default = ""
   type    = string
+  sensitive = true
+}
+variable "apikey_radarr" {
+  default = ""
+  type    = string
+  sensitive = true
+}
+variable "apikey_openweathermap" {
+  default   = ""
+  type      = string
+  sensitive = true
 }
 variable "apikey_weatherapi" {
-  default = "apikey"
-  type    = string
+  default   = ""
+  type      = string
+  sensitive = true
 }
 variable "server_ip" {}

@@ -3,14 +3,26 @@
 # https://gethomepage.dev/latest/configs/services
 
 - Arr:
-    - Sonarr:
-        href: http://sonarr.${domain_root}/
-        description: Sonarr
-    - Radarr:
-        href: http://radarr.${domain_root}/
-        description: Radarr
+  - Sonarr:
+      href: http://sonarr.${domain_root}/
+      description: Sonarr
+      widget:
+        type: sonarr
+        url: http://sonarr.sonarr.svc.cluster.local
+        key: ${apikey_sonarr}
+  - Radarr:
+      href: http://radarr.${domain_root}/
+      description: Radarr
+      widget:
+        type: radarr
+        url: http://radarr.radarr.svc.cluster.local
+        key: ${apikey_radarr}
 
 - Media:
-    - Plex:
-        href: http://plex.${domain_root}/
-        description: Plex
+  - Plex:
+      href: https://plex.${domain_root}/
+      description: Plex
+      widget:
+        type: plex
+        url: https://plex.${domain_root}/
+        key: TOKEN

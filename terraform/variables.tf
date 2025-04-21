@@ -13,6 +13,7 @@ variable "node_ip" {
 }
 variable "kubecost_token" {
   description = "Kubecost token. A free trial one can be gotten from https://www.kubecost.com/install.html"
+  sensitive   = true
 }
 variable "discord_image" {
   description = "Name of Docker image to deploy"
@@ -23,20 +24,24 @@ variable "github_username" {
 }
 variable "github_pat" {
   description = "Github PAT to access image on Github Container Registry"
+  sensitive   = true
 }
 variable "apikey_openweathermap" {
   default     = "apikey"
   description = "API key from https://openweathermap.org/"
   type        = string
+  sensitive   = true
 }
 variable "apikey_weatherapi" {
   default     = "apikey"
   description = "API key from https://www.weatherapi.com/"
   type        = string
+  sensitive   = true
 }
 variable "plex_token" {
   default     = "apikey"
   description = "Create a Plex account and get a token from https://www.plex.tv/claim/"
+  sensitive   = true
 }
 variable "plex_path_config" {
   default     = "/mnt/plex/config"

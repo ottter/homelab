@@ -8,7 +8,7 @@ variable "domain_sub" {
 }
 variable "homepage_enabled" {
   default = true
-  type = bool
+  type    = bool
 }
 variable "plexdir_movies" {
   default = "/mnt/plex/movies"

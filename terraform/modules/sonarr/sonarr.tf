@@ -17,11 +17,11 @@ resource "helm_release" "sonarr" {
 
   values = [
     templatefile("${path.module}/values-tmpl.yaml", {
-      tls_secret = kubernetes_secret.tls.metadata[0].name
-      full_path  = "${var.domain_sub}.${var.domain_root}"
-      homepage_enabled    = var.homepage_enabled
-      plexdir_tv = "${var.plexdir_tv}"
-      server_ip  = "${var.server_ip}"
+      tls_secret       = kubernetes_secret.tls.metadata[0].name
+      full_path        = "${var.domain_sub}.${var.domain_root}"
+      homepage_enabled = var.homepage_enabled
+      plexdir_tv       = "${var.plexdir_tv}"
+      server_ip        = "${var.server_ip}"
     })
   ]
 }

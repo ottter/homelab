@@ -1,10 +1,11 @@
-# data "kubernetes_secret" "radarr_api" {
-#   metadata {
-#     name      = "radarr-api-key"
-#     namespace = "radarr"
-#   }
-# }
+data "kubernetes_secret" "radarr_key" {
+  metadata {
+    name      = "homepage-api-key-radarr"
+    namespace = kubernetes_namespace.ns.metadata[0].name
+  }
+}
 
-# output "radarr_api_key" {
-#   value = base64decode(data.kubernetes_secret.radarr_api.data["apiKey"])
-# }
+output "radarr_api_key" {
+  value     = data.kubernetes_secret.radarr_key.data["apiKey"]
+  sensitive = true
+}

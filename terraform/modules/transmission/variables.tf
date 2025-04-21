@@ -6,7 +6,7 @@ variable "domain_sub" {
 }
 variable "homepage_enabled" {
   default = true
-  type = bool
+  type    = bool
 }
 variable "plexdir_downloads" {
   default = "/mnt/plex/downloads"
