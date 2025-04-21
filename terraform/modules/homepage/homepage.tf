@@ -9,6 +9,7 @@ locals {
   settings_yaml = templatefile("${path.module}/configs/settings-tmpl.yaml", {
     openweathermap = var.apikey_openweathermap
     weatherapi     = var.apikey_weatherapi
+    finnhub        = var.apikey_finnhub
   })
   widgets_yaml = file("${path.module}/configs/widgets-tmpl.yaml")
 }
@@ -36,6 +37,12 @@ resource "helm_release" "homepage" {
       full_path  = "${var.domain_sub}.${var.domain_root}"
     })
   ]
+
+  lifecycle {
+    replace_triggered_by = [
+      kubernetes_config_map.homepage_config
+    ]
+  }
 }
 
 resource "kubernetes_config_map" "homepage_config" {

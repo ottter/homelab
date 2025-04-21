@@ -18,3 +18,22 @@
     cache: 5 # Time in minutes to cache API responses, to stay within limits
     format:
       maximumFractionDigits: 0
+
+- stocks:
+    provider: finnhub
+    watchlist:
+      - SPY
+      - NVDA
+      - TSM
+      - MSFT
+      - AAPL
+
+- kubernetes:
+    cluster:
+      show: true
+      cpu: true
+      memory: true
+    nodes:
+      show: true
+      cpu: true
+      memory: true

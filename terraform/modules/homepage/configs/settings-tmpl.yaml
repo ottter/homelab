@@ -3,5 +3,6 @@
 # https://gethomepage.dev/latest/configs/settings
 
 providers:
+  finnhub: "${finnhub}"
   openweathermap: "${openweathermap}"
   weatherapi: "${weatherapi}"

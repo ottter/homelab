@@ -26,6 +26,12 @@ variable "github_pat" {
   description = "Github PAT to access image on Github Container Registry"
   sensitive   = true
 }
+variable "apikey_finnhub" {
+  default     = "apikey"
+  description = "API key from https://finnhub.io/"
+  type        = string
+  sensitive   = true
+}
 variable "apikey_openweathermap" {
   default     = "apikey"
   description = "API key from https://openweathermap.org/"

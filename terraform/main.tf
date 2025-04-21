@@ -25,9 +25,10 @@ module "homepage" {
   count                 = var.enable_homepage ? 1 : 0
   domain_root           = var.domain_root
   server_ip             = element(var.node_ip, 0)
-  apikey_sonarr         = module.sonarr[0].sonarr_api_key
-  apikey_radarr         = module.radarr[0].radarr_api_key
+  apikey_finnhub        = var.apikey_finnhub
   apikey_openweathermap = var.apikey_openweathermap
+  apikey_radarr         = module.radarr[0].radarr_api_key
+  apikey_sonarr         = module.sonarr[0].sonarr_api_key
   apikey_weatherapi     = var.apikey_weatherapi
 }
 

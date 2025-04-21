@@ -4,25 +4,26 @@
 
 - Arr:
   - Sonarr:
-      href: http://sonarr.${domain_root}/
-      description: Sonarr
+      icon: sonarr.png
+      href: https://sonarr.${domain_root}/
+      description: Series management
       widget:
         type: sonarr
-        url: http://sonarr.sonarr.svc.cluster.local
+        url: https://sonarr.sonarr.svc.cluster.local
         key: ${apikey_sonarr}
   - Radarr:
-      href: http://radarr.${domain_root}/
-      description: Radarr
+      icon: radarr.png
+      href: https://radarr.${domain_root}/
+      description: Movie management
       widget:
         type: radarr
-        url: http://radarr.radarr.svc.cluster.local
+        url: https://radarr.radarr.svc.cluster.local
         key: ${apikey_radarr}
 
 - Media:
   - Plex:
+      icon: plex.png
       href: https://plex.${domain_root}/
       description: Plex
-      widget:
-        type: plex
-        url: https://plex.${domain_root}/
-        key: TOKEN
+      server: plex
+      container: plex

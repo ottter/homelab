@@ -12,6 +12,7 @@ discord_image   = "GITHUB_CONTAINER_REGISTRY_IMAGE"
 
 ## # Module: Homepage
 enable_homepage       = false
+apikey_finnhub        = "APIKEY" # Optional: https://finnhub.io/
 apikey_openweathermap = "APIKEY" # Optional: https://openweathermap.org/
 apikey_weatherapi     = "APIKEY" # Optional: https://www.weatherapi.com/
 
