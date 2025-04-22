@@ -16,6 +16,8 @@ apikey_finnhub        = "APIKEY" # Optional: https://finnhub.io/
 apikey_openweathermap = "APIKEY" # Optional: https://openweathermap.org/
 apikey_weatherapi     = "APIKEY" # Optional: https://www.weatherapi.com/
 
+stock_watchlist = ["SPY", "NVDA", "TSM", "MSFT", "AAPL"]
+
 ## # Module: Kubecost
 enable_kubecost = false
 kubecost_token  = "KUBECOST_TOKEN"

@@ -11,7 +11,9 @@ locals {
     weatherapi     = var.apikey_weatherapi
     finnhub        = var.apikey_finnhub
   })
-  widgets_yaml = file("${path.module}/configs/widgets-tmpl.yaml")
+  widgets_yaml = templatefile("${path.module}/configs/widgets-tmpl.yaml", {
+    stock_watchlist = indent(6, trimspace(yamlencode(var.stock_watchlist)))
+  })
 }
 
 resource "kubernetes_namespace" "ns" {

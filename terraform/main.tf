@@ -25,6 +25,7 @@ module "homepage" {
   count                 = var.enable_homepage ? 1 : 0
   domain_root           = var.domain_root
   server_ip             = element(var.node_ip, 0)
+  stock_watchlist       = var.stock_watchlist
   apikey_finnhub        = var.apikey_finnhub
   apikey_openweathermap = var.apikey_openweathermap
   apikey_radarr         = module.radarr[0].radarr_api_key

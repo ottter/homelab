@@ -21,12 +21,8 @@
 
 - stocks:
     provider: finnhub
-    watchlist:
-      - SPY
-      - NVDA
-      - TSM
-      - MSFT
-      - AAPL
+    watchlist: 
+      ${stock_watchlist}
 
 - kubernetes:
     cluster:

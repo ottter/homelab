@@ -13,16 +13,16 @@ variable "apikey_finnhub" {
   sensitive   = true
 }
 variable "apikey_sonarr" {
-  default   = ""
+  default     = ""
   description = "API Key from Sonarr"
-  type      = string
-  sensitive = true
+  type        = string
+  sensitive   = true
 }
 variable "apikey_radarr" {
-  default   = ""
+  default     = ""
   description = "API Key from Radarr"
-  type      = string
-  sensitive = true
+  type        = string
+  sensitive   = true
 }
 variable "apikey_openweathermap" {
   default     = ""
@@ -37,3 +37,8 @@ variable "apikey_weatherapi" {
   sensitive   = true
 }
 variable "server_ip" {}
+variable "stock_watchlist" {
+  default     = ["SPY", "NVDA", "TSM", "MSFT", "AAPL"]
+  description = "List of stock ticker symbols (compatible with Finnhub API)"
+  type        = list(string)
+}

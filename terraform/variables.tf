@@ -69,6 +69,11 @@ variable "plex_path_root" {
   default     = "/mnt/plex"
   description = "Filepath on NFS share for Plex root location"
 }
+variable "stock_watchlist" {
+  default     = ["SPY", "NVDA", "TSM", "MSFT", "AAPL"]
+  description = "List of stock ticker symbols (compatible with Finnhub API)"
+  type        = list(string)
+}
 variable "transmission_user" {
   default     = "admin"
   description = "Basic Auth username to access Transmission. Can be disabled in values.yaml"
