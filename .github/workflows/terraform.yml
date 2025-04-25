@@ -2,10 +2,9 @@ name: Terraform Format and Docs
 
 on:
   push:
-    paths:
-      - 'terraform/**.tf'
-      - 'terraform/**.md'
+    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
 
 jobs:
   fmt-docs:
