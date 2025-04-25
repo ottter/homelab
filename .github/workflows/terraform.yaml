@@ -20,7 +20,7 @@ jobs:
         run: terraform fmt -recursive terraform/
 
       - name: Generate Terraform Docs
-        uses: terraform-docs/gh-actions@v1.1.0
+        uses: terraform-docs/gh-actions@v1.4.0
         with:
           working-dir: terraform/
           output-file: README.md
