@@ -24,5 +24,4 @@ jobs:
         with:
           working-dir: terraform/
           output-file: README.md
-          output-method: inject
           recursive: true
