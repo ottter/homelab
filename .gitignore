@@ -1,5 +1,7 @@
-# contains tokens
-/ansible/env_vars.sh
+# ansible secrets and generated files
+/ansible/.env
+/ansible/kubeconfig
+*.retry
 
 # Local .terraform directories
 **/.terraform/*
