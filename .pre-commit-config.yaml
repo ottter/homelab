@@ -6,9 +6,3 @@ repos:
         args: ['--recursive']
       - id: terraform_docs
         args: ['--recursive']
-
-  - repo: https://github.com/ansible/ansible-lint
-    rev: v24.12.2
-    hooks:
-      - id: ansible-lint
-        files: ^ansible/
