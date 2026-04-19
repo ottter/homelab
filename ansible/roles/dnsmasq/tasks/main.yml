@@ -1,0 +1,35 @@
+---
+- name: Install dnsmasq
+  ansible.builtin.apt:
+    name: dnsmasq
+    state: present
+    update_cache: true
+
+- name: Template dnsmasq homelab config
+  ansible.builtin.template:
+    src: homelab.conf.j2
+    dest: /etc/dnsmasq.d/homelab.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart dnsmasq
+
+- name: Enable and start dnsmasq
+  ansible.builtin.systemd:
+    name: dnsmasq
+    enabled: true
+    state: started
+
+- name: Allow DNS from LAN (UDP)
+  community.general.ufw:
+    rule: allow
+    port: "53"
+    proto: udp
+    src: "{{ lan_subnet }}"
+
+- name: Allow DNS from LAN (TCP)
+  community.general.ufw:
+    rule: allow
+    port: "53"
+    proto: tcp
+    src: "{{ lan_subnet }}"

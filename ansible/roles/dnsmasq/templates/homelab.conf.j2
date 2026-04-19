@@ -1,0 +1,12 @@
+# Do not forward .{{ domain_suffix }} queries upstream
+local=/{{ domain_suffix }}/
+
+# Only listen on LAN interface and loopback — not internet-facing
+listen-address=127.0.0.1,{{ server_lan_ip }}
+bind-interfaces
+
+# Override: plex.{{ domain_suffix }} -> Plex LoadBalancer IP (bypasses Traefik)
+address=/plex.{{ domain_suffix }}/{{ plex_lb_ip }}
+
+# Wildcard: all other *.{{ domain_suffix }} -> Traefik LoadBalancer
+address=/.{{ domain_suffix }}/{{ traefik_lb_ip }}

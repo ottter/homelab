@@ -2,6 +2,9 @@
 # Network
 lan_subnet:    "192.168.0.0/24"
 server_lan_ip: "192.168.0.210"
+traefik_lb_ip: "192.168.0.220"  # Must match first IP of metallb_pool in terraform/homelab.tfvars
+plex_lb_ip:    "192.168.0.221"  # Must match plex_lb_ip in terraform/homelab.tfvars
+domain_suffix: "local"          # Must match domain_root in terraform/homelab.tfvars
 
 # System
 hostname: "minipc"

@@ -18,3 +18,4 @@
     - hardening
     - k3s
     - nfs
+    - dnsmasq
