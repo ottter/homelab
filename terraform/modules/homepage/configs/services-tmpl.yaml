@@ -2,6 +2,15 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/services
 
+- Infrastructure:
+  - Traefik:
+      icon: traefik.png
+      href: https://traefik.${domain_root}/
+      description: Ingress controller
+      widget:
+        type: traefik
+        url: http://${traefik_lb_ip}:9000
+
 - Arr:
   - Sonarr:
       icon: sonarr.png
@@ -19,11 +28,20 @@
         type: radarr
         url: https://radarr.radarr.svc.cluster.local
         key: ${apikey_radarr}
+  - Transmission:
+      icon: transmission.png
+      href: https://transmission.${domain_root}/
+      description: Torrent client
+      widget:
+        type: transmission
+        url: http://transmission.transmission.svc.cluster.local:9091
 
 - Media:
   - Plex:
       icon: plex.png
-      href: https://plex.${domain_root}/
+      href: http://plex.${domain_root}:32400/web/
       description: Plex
-      server: plex
-      container: plex
+      widget:
+        type: plex
+        url: http://${plex_lb_ip}:32400
+        key: ${plex_token}

@@ -19,13 +19,13 @@ forceConfigFromValues: false
 
 ingress:
   main:
-    ingressClassName: nginx
+    ingressClassName: traefik
     enabled: true
     integrations:
       homepage:
         enabled: true
       traefik:
-        enabled: false
+        enabled: true
     hosts:
       - host: ${full_path}
         paths:

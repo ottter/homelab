@@ -1,15 +1,16 @@
-domain_root = "local"   # Must match domain_suffix in ansible/group_vars/all.yml
+domain_root = "local" # Must match domain_suffix in ansible/group_vars/all.yml
 kubeconfig  = "~/.kube/config"
 
-# IP layout — all addresses must be outside the router's DHCP range
+# IP layout — MetalLB and Traefik are managed by Ansible (ansible/group_vars/all.yml)
+# These values must match what Ansible configured on the cluster.
+#
 # +-------------------+---------------------------+
 # | node_ip           | 192.168.0.210             |  k3s node, dnsmasq
-# | metallb_pool      | 192.168.0.220-192.168.0.230 |  MetalLB pool (keep outside DHCP)
-# | traefik (derived) | first IP of metallb_pool  |  Traefik ingress controller
-# | plex_lb_ip        | 192.168.0.221             |  Plex media server
+# | traefik_lb_ip     | 192.168.0.220             |  Traefik ingress — must match metallb_pool[0] in Ansible
+# | plex_lb_ip        | 192.168.0.221             |  Plex media server — must be within metallb_pool
 # +-------------------+---------------------------+
-node_ip      = ["192.168.0.210"]
-metallb_pool = "192.168.0.220-192.168.0.230"
+node_ip       = ["192.168.0.210"]
+traefik_lb_ip = "192.168.0.220" # Must match traefik_lb_ip in ansible/group_vars/all.yml
 
 # Module: Discord
 enable_discord  = false

@@ -3,6 +3,9 @@ locals {
   kubernetes_yaml = file("${path.module}/configs/kubernetes-tmpl.yaml")
   services_yaml = templatefile("${path.module}/configs/services-tmpl.yaml", {
     domain_root   = var.domain_root
+    traefik_lb_ip = var.traefik_lb_ip
+    plex_lb_ip    = var.plex_lb_ip
+    plex_token    = var.plex_token
     apikey_sonarr = var.apikey_sonarr
     apikey_radarr = var.apikey_radarr
   })
@@ -18,9 +21,6 @@ locals {
 
 resource "kubernetes_namespace" "ns" {
   metadata {
-    labels = {
-      istio-injection = "enabled"
-    }
     name = "homepage"
   }
 }
@@ -30,7 +30,7 @@ resource "helm_release" "homepage" {
   name      = "homepage"
   namespace = kubernetes_namespace.ns.metadata[0].name
 
-  repository = "oci://tccr.io/truecharts"
+  repository = "oci://oci.trueforge.org/truecharts"
   chart      = "homepage"
 
   values = [

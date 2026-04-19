@@ -1,16 +1,3 @@
-module "networking" {
-  source       = "./modules/networking"
-  metallb_pool = var.metallb_pool
-}
-
-module "kubecost" {
-  source         = "./modules/kubecost"
-  count          = var.enable_kubecost ? 1 : 0
-  domain_root    = var.domain_root
-  kubecost_token = var.kubecost_token
-  node_ip        = element(var.node_ip, 0)
-}
-
 module "discord" {
   source          = "./modules/discord"
   count           = var.enable_discord ? 1 : 0
@@ -23,7 +10,9 @@ module "homepage" {
   source                = "./modules/homepage"
   count                 = var.enable_homepage ? 1 : 0
   domain_root           = var.domain_root
-  server_ip             = element(var.node_ip, 0)
+  traefik_lb_ip         = var.traefik_lb_ip
+  plex_lb_ip            = var.plex_lb_ip
+  plex_token            = var.plex_token
   stock_watchlist       = var.stock_watchlist
   apikey_finnhub        = var.apikey_finnhub
   apikey_openweathermap = var.apikey_openweathermap
@@ -41,6 +30,7 @@ module "plex" {
   plex_path_config = var.plex_path_config
   plex_path_tv     = var.plex_path_tv
   plex_path_movies = var.plex_path_movies
+  plex_lb_ip       = var.plex_lb_ip
 }
 
 module "radarr" {
@@ -48,7 +38,8 @@ module "radarr" {
   count                = var.enable_radarr ? 1 : 0
   domain_root          = var.domain_root
   server_ip            = element(var.node_ip, 0)
-  plexdir_movies       = "/mnt/plex/"
+  plexdir_movies       = var.plex_path_movies
+  homepage_enabled     = var.enable_homepage
   transmission_enabled = var.enable_transmission
   transmission_user    = var.transmission_user
   transmission_pass    = var.transmission_pass
@@ -61,6 +52,7 @@ module "sonarr" {
   domain_root          = var.domain_root
   server_ip            = element(var.node_ip, 0)
   plexdir_tv           = var.plex_path_tv
+  homepage_enabled     = var.enable_homepage
   transmission_enabled = var.enable_transmission
   transmission_user    = var.transmission_user
   transmission_pass    = var.transmission_pass
@@ -72,4 +64,7 @@ module "transmission" {
   count             = var.enable_transmission ? 1 : 0
   domain_root       = var.domain_root
   plexdir_downloads = var.plex_path_downloads
+  homepage_enabled  = var.enable_homepage
+  username          = var.transmission_user
+  password          = var.transmission_pass
 }
