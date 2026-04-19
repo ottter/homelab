@@ -1,8 +1,0 @@
----
-- name: Copy preformatted environment variables file to remote host
-  become: yes
-  copy:
-    src: "{{ playbook_dir }}/env_vars.sh"
-    dest: /etc/profile.d/custom_env.sh
-    mode: '0644'
-  notify: reload_environment

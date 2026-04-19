@@ -1,0 +1,127 @@
+---
+# Step 1: Ensure SSH key is present BEFORE any SSH config changes.
+# This makes the role safe to re-run on a fresh install where the key
+# may not yet be in authorized_keys.
+- name: Ensure .ssh directory exists
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.ssh"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0700"
+
+- name: Copy local SSH public key to authorized_keys
+  ansible.posix.authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    key: "{{ lookup('file', ansible_ssh_private_key_file ~ '.pub') }}"
+
+# Step 2: UFW firewall
+- name: Set UFW default policies
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { direction: incoming, policy: deny }
+    - { direction: outgoing, policy: allow }
+    - { direction: routed,   policy: deny }
+
+- name: Allow SSH from LAN only
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port }}"
+    proto: tcp
+    src: "{{ lan_subnet }}"
+    comment: "SSH from LAN"
+
+- name: Allow k3s API from LAN only
+  community.general.ufw:
+    rule: allow
+    port: "6443"
+    proto: tcp
+    src: "{{ lan_subnet }}"
+    comment: "k3s API from LAN"
+
+- name: Allow k3s NodePort range from LAN
+  community.general.ufw:
+    rule: allow
+    port: "30000:32767"
+    proto: tcp
+    src: "{{ lan_subnet }}"
+    comment: "k3s NodePorts from LAN"
+
+- name: Enable UFW logging
+  community.general.ufw:
+    logging: "on"
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+
+# Step 3: SSH hardening
+- name: Harden SSH configuration
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    validate: /usr/sbin/sshd -t -f %s
+  loop:
+    - { regexp: '^#?PermitRootLogin',        line: "PermitRootLogin {{ ssh_permit_root_login }}" }
+    - { regexp: '^#?PasswordAuthentication', line: "PasswordAuthentication {{ ssh_password_auth }}" }
+    - { regexp: '^#?MaxAuthTries',           line: "MaxAuthTries {{ ssh_max_auth_tries }}" }
+    - { regexp: '^#?ClientAliveInterval',    line: "ClientAliveInterval {{ ssh_client_alive_interval }}" }
+    - { regexp: '^#?ClientAliveCountMax',    line: "ClientAliveCountMax {{ ssh_client_alive_count_max }}" }
+    - { regexp: '^#?X11Forwarding',          line: "X11Forwarding no" }
+    - { regexp: '^#?AllowAgentForwarding',   line: "AllowAgentForwarding no" }
+    - { regexp: '^#?AllowTcpForwarding',     line: "AllowTcpForwarding no" }
+    - { regexp: '^#?PermitEmptyPasswords',   line: "PermitEmptyPasswords no" }
+  notify: Restart sshd
+
+- name: Restrict SSH to allowed users
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?AllowUsers'
+    line: "AllowUsers {{ ssh_allowed_users | join(' ') }}"
+    validate: /usr/sbin/sshd -t -f %s
+  notify: Restart sshd
+
+# Step 4: Kernel hardening
+- name: Apply sysctl security settings
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: true
+    state: present
+    reload: true
+  loop:
+    - { name: net.ipv4.conf.all.rp_filter,           value: "1" }
+    - { name: net.ipv4.conf.default.rp_filter,       value: "1" }
+    - { name: net.ipv4.tcp_syncookies,               value: "1" }
+    - { name: net.ipv4.conf.all.accept_redirects,    value: "0" }
+    - { name: net.ipv4.conf.all.send_redirects,      value: "0" }
+    - { name: net.ipv4.conf.all.accept_source_route, value: "0" }
+    - { name: net.ipv4.icmp_echo_ignore_broadcasts,  value: "1" }
+    - { name: kernel.dmesg_restrict,                 value: "1" }
+    - { name: kernel.kptr_restrict,                  value: "2" }
+
+# Step 5: fail2ban
+- name: Configure fail2ban for SSH
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.d/sshd.conf
+    content: |
+      [sshd]
+      enabled  = true
+      port     = {{ ssh_port }}
+      maxretry = {{ fail2ban_maxretry }}
+      bantime  = {{ fail2ban_bantime }}
+      findtime = {{ fail2ban_findtime }}
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart fail2ban
+
+- name: Enable and start fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    enabled: true
+    state: started

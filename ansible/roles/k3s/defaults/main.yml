@@ -1,0 +1,10 @@
+---
+k3s_install_url:     "https://get.k3s.io"
+k3s_version:         "v1.35.3+k3s1"
+k3s_force_reinstall: false
+k3s_extra_args: >-
+  --disable traefik
+  --disable servicelb
+  --write-kubeconfig-mode 600
+  --secrets-encryption
+  --kube-apiserver-arg=admission-control-config-file=/etc/rancher/k3s/psa.yaml

@@ -1,0 +1,57 @@
+---
+- name: Skip NFS setup (nfs_enabled is false)
+  ansible.builtin.meta: end_play
+  when: not nfs_enabled
+
+- name: Create NFS mount point
+  ansible.builtin.file:
+    path: "{{ nfs_mount_point }}"
+    state: directory
+    owner: "{{ nfs_owner_uid }}"
+    group: "{{ nfs_owner_uid }}"
+    mode: "0755"
+
+- name: Mount external drive
+  ansible.posix.mount:
+    path: "{{ nfs_mount_point }}"
+    src: "{{ nfs_device }}"
+    fstype: "{{ nfs_fs_type }}"
+    opts: defaults,nofail
+    state: mounted
+
+- name: Set ownership and permissions after mount
+  ansible.builtin.file:
+    path: "{{ nfs_mount_point }}"
+    owner: "{{ nfs_owner_uid }}"
+    group: "{{ nfs_owner_uid }}"
+    mode: "0755"
+
+- name: Create subdirectory structure
+  ansible.builtin.file:
+    path: "{{ nfs_mount_point }}/{{ item }}"
+    state: directory
+    owner: "{{ nfs_owner_uid }}"
+    group: "{{ nfs_owner_uid }}"
+    mode: "0755"
+  loop: "{{ nfs_directories }}"
+
+- name: Configure NFS export (LAN only)
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    regexp: "^{{ nfs_mount_point }}"
+    line: "{{ nfs_mount_point }} {{ lan_subnet }}(rw,sync,no_subtree_check)"
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Enable and start nfs-kernel-server
+  ansible.builtin.systemd:
+    name: nfs-kernel-server
+    enabled: true
+    state: started
+
+- name: Export NFS shares
+  ansible.builtin.command:
+    cmd: exportfs -ra
+  changed_when: false

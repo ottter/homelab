@@ -1,0 +1,201 @@
+---
+- name: Check if k3s is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/k3s
+  register: k3s_binary
+
+# PSA config must exist before k3s starts.
+# enforce: baseline — blocks privileged containers, host network/PID, etc.
+# warn: restricted — warns on anything that would fail restricted (non-root, no caps, etc.)
+# To loosen a namespace later: kubectl label namespace <ns> pod-security.kubernetes.io/enforce=baseline --overwrite
+# To remove enforcement:       kubectl label namespace <ns> pod-security.kubernetes.io/enforce- --overwrite
+- name: Create k3s config directory
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Write Pod Security Admission config
+  ansible.builtin.copy:
+    dest: /etc/rancher/k3s/psa.yaml
+    owner: root
+    group: root
+    mode: "0600"
+    content: |
+      apiVersion: apiserver.config.k8s.io/v1
+      kind: AdmissionConfiguration
+      plugins:
+        - name: PodSecurity
+          configuration:
+            apiVersion: pod-security.admission.config.k8s.io/v1
+            kind: PodSecurityConfiguration
+            defaults:
+              enforce: "baseline"
+              enforce-version: "latest"
+              warn: "restricted"
+              warn-version: "latest"
+              audit: "restricted"
+              audit-version: "latest"
+            exemptions:
+              namespaces:
+                - kube-system
+                - kube-public
+                - kube-node-lease
+
+- name: Download k3s install script
+  ansible.builtin.get_url:
+    url: "{{ k3s_install_url }}"
+    dest: /tmp/k3s-install.sh
+    mode: "0700"
+  when: not k3s_binary.stat.exists or k3s_force_reinstall
+
+# NOTE: --secrets-encryption must be set on first install.
+# If k3s is already running without it, set k3s_force_reinstall: true, then run:
+#   k3s secrets-encrypt enable
+#   k3s secrets-encrypt rotate
+#   k3s secrets-encrypt reencrypt
+- name: Install k3s
+  ansible.builtin.command:
+    cmd: /tmp/k3s-install.sh
+  environment:
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    INSTALL_K3S_EXEC: "server {{ k3s_extra_args }} --advertise-address {{ server_lan_ip }}"
+  when: not k3s_binary.stat.exists or k3s_force_reinstall
+
+- name: Ensure k3s service is enabled and running
+  ansible.builtin.systemd:
+    name: k3s
+    enabled: true
+    state: started
+
+- name: Wait for k3s node to be ready
+  ansible.builtin.command:
+    cmd: k3s kubectl get nodes
+  register: k3s_ready
+  retries: 15
+  delay: 10
+  until: k3s_ready.rc == 0
+  changed_when: false
+
+- name: Create .kube directory for {{ ansible_user }}
+  ansible.builtin.file:
+    path: "/home/{{ ansible_user }}/.kube"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0700"
+
+- name: Copy kubeconfig to user home
+  ansible.builtin.copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: "/home/{{ ansible_user }}/.kube/config"
+    remote_src: true
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
+
+- name: Symlink k3s binary as kubectl
+  ansible.builtin.file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/kubectl
+    state: link
+
+- name: Add kubeconfig and kubectl alias to .bashrc
+  ansible.builtin.blockinfile:
+    path: "/home/{{ ansible_user }}/.bashrc"
+    marker: "# {mark} ANSIBLE MANAGED - k3s"
+    block: |
+      export KUBECONFIG=~/.kube/config
+      alias k='k3s kubectl'
+      alias kubectl='k3s kubectl'
+
+- name: Label default namespace with pod security policy
+  ansible.builtin.command:
+    cmd: >
+      k3s kubectl label namespace default
+      pod-security.kubernetes.io/enforce=baseline
+      pod-security.kubernetes.io/warn=restricted
+      pod-security.kubernetes.io/audit=restricted
+      --overwrite
+  changed_when: false
+
+# k3s.yaml is root-only (mode 600). Read it as root then write locally.
+- name: Read kubeconfig from server
+  ansible.builtin.slurp:
+    src: /etc/rancher/k3s/k3s.yaml
+  register: k3s_kubeconfig
+
+- name: Verify kubeconfig is non-empty
+  ansible.builtin.assert:
+    that: k3s_kubeconfig.content | length > 0
+    fail_msg: "k3s kubeconfig is empty — k3s may not have started correctly"
+
+- name: Write kubeconfig to local ansible directory
+  ansible.builtin.copy:
+    content: "{{ k3s_kubeconfig.content | b64decode }}"
+    dest: "{{ playbook_dir }}/kubeconfig"
+    mode: "0600"
+  delegate_to: localhost
+  become: false
+
+- name: Rewrite kubeconfig server address to LAN IP
+  ansible.builtin.replace:
+    path: "{{ playbook_dir }}/kubeconfig"
+    regexp: 'https://127\.0\.0\.1:6443'
+    replace: "https://{{ server_lan_ip }}:6443"
+  delegate_to: localhost
+  become: false
+
+- name: Configure logrotate for k3s logs
+  ansible.builtin.copy:
+    dest: /etc/logrotate.d/k3s
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      /var/log/k3s.log {
+          daily
+          rotate 7
+          compress
+          delaycompress
+          missingok
+          notifempty
+          copytruncate
+      }
+      /var/lib/rancher/k3s/agent/logs/*.log {
+          daily
+          rotate 7
+          compress
+          delaycompress
+          missingok
+          notifempty
+          copytruncate
+      }
+
+- name: Prune unused container images weekly
+  ansible.builtin.cron:
+    name: "k3s image prune"
+    weekday: "0"
+    hour: "3"
+    minute: "30"
+    user: root
+    job: "k3s crictl rmi --prune >> /var/log/k3s-image-prune.log 2>&1"
+    state: present
+
+- name: Configure logrotate for image prune log
+  ansible.builtin.copy:
+    dest: /etc/logrotate.d/k3s-image-prune
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      /var/log/k3s-image-prune.log {
+          weekly
+          rotate 4
+          compress
+          missingok
+          notifempty
+          copytruncate
+      }

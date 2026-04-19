@@ -1,23 +1,20 @@
 ---
-- name: apply common configuration to all nodes
-  hosts: all
-  vars:
-    kubernetes_vesion: "v1.31"
+# Idempotent — safe to re-run at any time.
+# Provisions the full minipc: OS hardening, k3s cluster, and optional NFS storage.
+#
+# Usage:
+#   set -a && . .env && set +a
+#   ansible-playbook playbook_bootstrap.yml
+#
+# After first run, test with:
+#   KUBECONFIG=ansible/kubeconfig kubectl get nodes
+
+- name: Provision minipc
+  hosts: minipc
+  become: true
+
   roles:
     - common
-
-- name: apply configuration to control node(s)
-  hosts: homelab
-  vars:
-    nfs_device: "/dev/sdb1"
-  tasks:
-    - name: "Create a k3s cluster"
-      include_role:
-        name: homelab
-
-    - set_fact:
-        kubeadm_join_command: "{{ kubeadm_join_command.stdout }}"
-      delegate_facts: true      
-      delegate_to: "{{ item }}"
-      with_items: "{{ groups['worker'] }}"  
-      # saving this to make it easier to plug in other nodes in future
+    - hardening
+    - k3s
+    - nfs

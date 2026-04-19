@@ -1,0 +1,14 @@
+---
+# Fallback defaults — all of these should be set in group_vars/all.yml.
+# Values here are only used if group_vars doesn't define them.
+ssh_port:                   22
+ssh_allowed_users:          []
+ssh_password_auth:          "no"
+ssh_permit_root_login:      "no"
+ssh_max_auth_tries:         3
+ssh_client_alive_interval:  300
+ssh_client_alive_count_max: 2
+
+fail2ban_maxretry: 5
+fail2ban_bantime:  3600
+fail2ban_findtime: 600

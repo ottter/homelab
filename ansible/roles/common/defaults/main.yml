@@ -1,0 +1,16 @@
+---
+common_packages:
+  - curl
+  - tree
+  - git
+  - vim
+  - htop
+  - unattended-upgrades
+  - apt-transport-https
+  - ca-certificates
+  - gnupg
+  - lsb-release
+  - ufw
+  - fail2ban
+  - rsync
+  - nfs-kernel-server

@@ -1,3 +1,0 @@
-- name: reload_environment
-  shell: source /etc/profile.d/custom_env.sh
-

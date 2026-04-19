@@ -1,61 +1,43 @@
 ---
-- name: Install required packages
-  become: yes
-  apt:
-    name:
-      - apt-transport-https
-      - ca-certificates
-      - curl
-      - gnupg2
-      - software-properties-common
-      - git
-      - vim
-      - pip
-      - tmux
-      - docker.io
-      - tree
-      - rsync
-    state: present
-    update_cache: yes
-
-- name: Update all packages
-  become: yes
-  apt:
-    update_cache: yes
+- name: Update apt cache and upgrade all packages
+  ansible.builtin.apt:
+    update_cache: true
     upgrade: dist
+    cache_valid_time: 3600
 
-- name: Create keyrings directory
-  become: yes
-  file:
-    path: /etc/apt/keyrings
-    state: directory
-    mode: '0755'
+- name: Install common packages
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
 
-- name: Add Kubernetes apt-key
-  become: yes
-  get_url:
-    url: "https://pkgs.k8s.io/core:/stable:/{{ kubernetes_vesion }}/deb/Release.key"
-    dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ hostname }}"
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Disable swap (required for k3s)
+  ansible.builtin.command: swapoff -a
+  when: ansible_swaptotal_mb > 0
+  changed_when: ansible_swaptotal_mb > 0
+
+- name: Remove swap from fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: '^([^#].*\sswap\s.*)$'
+    replace: '# \1'
+
+- name: Configure unattended security upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::AutocleanInterval "7";
+      Unattended-Upgrade::Automatic-Reboot "true";
+      Unattended-Upgrade::Automatic-Reboot-Time "03:00";
+    owner: root
+    group: root
     mode: "0644"
-    validate_certs: false
-    force: true
-
-- name: Add Kubernetes APT repository
-  become: yes
-  apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/{{ kubernetes_vesion }}/deb/ /"
-    state: present
-    update_cache: yes
-
-- name: Install kubectl
-  become: yes
-  apt:
-    name:
-      - kubectl
-    state: present
-    update_cache: yes
-
-- name: Hold kubelet, kubeadm, and kubectl packages
-  become: yes
-  command: apt-mark hold kubectl
-  ignore_errors: yes
