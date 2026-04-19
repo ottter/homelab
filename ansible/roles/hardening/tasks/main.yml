@@ -42,6 +42,20 @@
     src: "{{ lan_subnet }}"
     comment: "k3s API from LAN"
 
+- name: Allow HTTP (Traefik redirect)
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp
+    comment: "Traefik HTTP->HTTPS redirect"
+
+- name: Allow HTTPS (Traefik ingress)
+  community.general.ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+    comment: "Traefik HTTPS ingress"
+
 - name: Enable UFW logging
   community.general.ufw:
     logging: "on"

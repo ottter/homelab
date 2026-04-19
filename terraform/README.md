@@ -5,47 +5,55 @@ Deploys workloads onto the k3s cluster provisioned by Ansible. Run Ansible first
 ## Deployment
 
 ```sh
-cp terraform.tfvars.example terraform.tfvars  # fill in variables
+# terraform.tfvars is the tracked template — copy it and fill in secrets
+cp terraform.tfvars homelab.tfvars
 terraform init
-terraform apply
+terraform apply -var-file=homelab.tfvars
 ```
 
 ## Ingress: Traefik + MetalLB
 
-MetalLB (Layer 2 mode) assigns real LAN IPs to LoadBalancer services — no NodePort tricks needed.
+MetalLB and Traefik are provisioned by **Ansible** (`roles/networking`), not by Terraform. Terraform only needs the resulting IPs to annotate services and build URLs.
 
-| Component     | IP / Range                         | tfvars key            |
-| ------------- | ---------------------------------- | --------------------- |
-| Node (minipc) | `192.168.0.210`                    | `node_ip`             |
-| MetalLB pool  | `192.168.0.220 – 192.168.0.230`    | `metallb_pool`        |
-| Traefik       | first IP in pool (`192.168.0.220`) | derived automatically |
+| Component | IP              | tfvars key      | Ansible (`group_vars/all.yml`) |
+| --------- | --------------- | --------------- | ------------------------------ |
+| Node      | `192.168.0.210` | `node_ip`       | `server_lan_ip`                |
+| Traefik   | `192.168.0.220` | `traefik_lb_ip` | `traefik_lb_ip`                |
+| Plex      | `192.168.0.221` | `plex_lb_ip`    | `plex_lb_ip`                   |
+
+`traefik_lb_ip` and `plex_lb_ip` must match between `terraform/homelab.tfvars` and `ansible/group_vars/all.yml`. Ansible also sets `metallb_pool` — `traefik_lb_ip` must be its first IP.
 
 Traefik is configured with:
 
-- HTTP → HTTPS redirect on standard ports 80/443
-- Fixed LoadBalancer IP `192.168.0.220` via MetalLB
-- `local-ipallowlist` middleware (LAN-only access for Transmission)
+- HTTP -> HTTPS redirect on standard ports 80/443
+- Fixed LoadBalancer IP via MetalLB annotation
+- `local-ipallowlist` Middleware (LAN-only access for Transmission)
 
-All services use `ingressClassName: traefik` and self-signed TLS certs generated per-namespace by the `tls` provider.
+All services use `ingressClassName: traefik` and self-signed TLS certs generated per-namespace.
 
-> **Router prerequisite:** Set DHCP pool to `.2–.150`. Leave `.151–.253` for static use to avoid collisions with the MetalLB pool.
+> **Router prerequisite:** Set DHCP pool to `.2-.150`. Leave `.151-.253` for static use to avoid collisions with the MetalLB pool.
 
 ## Notes
 
-### Accessing Services and Utilizing Self-Signed Certs
+### Accessing Services
 
-Update `/etc/hosts` (Linux) or `C:\Windows\System32\drivers\etc\hosts` (Windows) with the following:
+Ansible deploys dnsmasq on the node, which resolves all `*.{domain_root}` queries automatically. Set your DNS server to the node IP once — no `/etc/hosts` maintenance needed.
+
+**Windows:** Settings -> Network -> DNS -> set to `192.168.0.210`
+**Linux/Mac:** Set nameserver `192.168.0.210` in your network config or `/etc/resolv.conf`
+**Router:** Set the DNS server to `192.168.0.210` to apply to all LAN devices
+
+> **Domain consistency:** `domain_root` in `terraform/homelab.tfvars` must match `domain_suffix` in `ansible/group_vars/all.yml`. Both default to `local`.
+
+**Fallback — `/etc/hosts`:** If you prefer not to change DNS, run:
 
 ```sh
-# Traefik ingress services — point to MetalLB IP
-192.168.0.220 kubecost.local transmission.local radarr.local sonarr.local homepage.local
-
-# Plex — accessed directly via node NodePort, not through Traefik
-192.168.0.210 plex.local
+terraform output hosts_file
 ```
 
-- Change `local` to whatever the `domain_root` variable is in your tfvars
-- Plex is exposed via NodePort 32000 on the node directly: `http://192.168.0.210:32000/web/`
+Paste the output into `/etc/hosts` (Linux/Mac) or `C:\Windows\System32\drivers\etc\hosts` (Windows).
+
+> Plex gets its own MetalLB IP (`plex_lb_ip`, default `192.168.0.221`) and is accessed at `http://plex.local:32400/web/`. It bypasses Traefik entirely — Plex handles its own TLS and does not play well with reverse proxies.
 
 ### Plex: Preconfiguration
 
@@ -75,7 +83,7 @@ cd /mnt/plex
 mkdir -p {downloads/{incomplete,complete},media/{movies,tv},config}
 ```
 
-Access Plex by going to [http://{node-ip}:32000/web/](https://www.plex.tv/)
+Access Plex by going to `http://plex.{domain_root}:32400/web/` (e.g. `http://plex.local:32400/web/`)
 
 ### Plex: Moving media
 
@@ -87,14 +95,6 @@ rsync -av --progress "Ghost In The Shell 1995.mp4" james@lab:/mnt/plex/movies/
 ```
 
 ## Modules
-
-### Networking (MetalLB + Traefik)
-
-Both are core cluster infrastructure and always deployed together via `modules/networking/`. Unlike other modules, networking has no feature flag — it is unconditionally applied on every `terraform apply`.
-
-- **MetalLB** — Layer 2 LoadBalancer; IP pool `192.168.0.220–192.168.0.230`; announces IPs via ARP, no router config required.
-- **Traefik** — Ingress controller; fixed IP `192.168.0.220` via MetalLB annotation; HTTP→HTTPS redirect; TLS termination with per-service self-signed secrets.
-- `local-ipallowlist` Middleware restricts Transmission to LAN ranges.
 
 ### Discord-bot
 
@@ -121,8 +121,3 @@ kubectl rollout restart deployment discord-bot
 ### Transmission
 
 - Torrent client used by Radarr/Sonarr.
-
-### Kubecost
-
-- Cost monitoring for Kubernetes.
-- Track resource usage and costs across namespaces and workloads.

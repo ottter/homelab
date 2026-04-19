@@ -1,0 +1,158 @@
+---
+- name: Check if Helm is installed
+  ansible.builtin.command: helm version --short
+  register: helm_check
+  changed_when: false
+  failed_when: false
+
+# Installs Helm via the official script. The script itself verifies the binary
+# with a sha256 checksum before installing.
+- name: Install Helm
+  ansible.builtin.shell: |
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  when: helm_check.rc != 0
+  changed_when: true
+
+- name: Create metallb-system namespace with PSA exemption
+  ansible.builtin.shell:
+    cmd: |
+      kubectl apply -f - <<'EOF'
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: metallb-system
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
+          pod-security.kubernetes.io/audit: privileged
+          pod-security.kubernetes.io/warn: privileged
+      EOF
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: result
+  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+
+- name: Create traefik namespace with PSA exemption
+  ansible.builtin.shell:
+    cmd: |
+      kubectl apply -f - <<'EOF'
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: traefik
+        labels:
+          pod-security.kubernetes.io/enforce: baseline
+          pod-security.kubernetes.io/audit: baseline
+          pod-security.kubernetes.io/warn: baseline
+      EOF
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: result
+  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+
+- name: Add MetalLB Helm repo
+  ansible.builtin.command: helm repo add metallb https://metallb.github.io/metallb
+  register: result
+  changed_when: "'already exists' not in result.stdout"
+
+- name: Add Traefik Helm repo
+  ansible.builtin.command: helm repo add traefik https://traefik.github.io/charts
+  register: result
+  changed_when: "'already exists' not in result.stdout"
+
+- name: Update Helm repos
+  ansible.builtin.command: helm repo update
+  changed_when: true
+
+- name: Install MetalLB via Helm
+  ansible.builtin.command: >
+    helm upgrade --install metallb metallb/metallb
+    --namespace metallb-system
+    --create-namespace
+    --version {{ metallb_version }}
+    --wait --timeout 120s
+    --set speaker.frr.enabled=false
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: result
+  changed_when: "'has been upgraded' in result.stdout or 'has been deployed' in result.stdout"
+
+- name: Wait for MetalLB controller to be ready
+  ansible.builtin.command: >
+    kubectl wait pod
+    --selector=app.kubernetes.io/component=controller
+    --namespace=metallb-system
+    --for=condition=ready
+    --timeout=120s
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  changed_when: false
+
+- name: Apply MetalLB IPAddressPool and L2Advertisement
+  ansible.builtin.shell:
+    cmd: |
+      kubectl apply -f - <<'EOF'
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
+      metadata:
+        name: homelab-pool
+        namespace: metallb-system
+      spec:
+        addresses:
+        - {{ metallb_pool }}
+      ---
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: homelab-l2
+        namespace: metallb-system
+      spec:
+        ipAddressPools:
+        - homelab-pool
+      EOF
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: result
+  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+
+- name: Install Traefik via Helm
+  ansible.builtin.command: >
+    helm upgrade --install traefik traefik/traefik
+    --namespace traefik
+    --create-namespace
+    --version {{ traefik_version }}
+    --wait --timeout 120s
+    --set "globalArguments={--global.sendAnonymousUsage=false}"
+    --set service.type=LoadBalancer
+    --set "service.annotations.metallb\.universe\.tf/loadBalancerIPs={{ traefik_lb_ip }}"
+    --set ports.web.redirections.entryPoint.to=websecure
+    --set ports.web.redirections.entryPoint.scheme=https
+    --set ports.websecure.tls.enabled=true
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: result
+  changed_when: "'has been upgraded' in result.stdout or 'has been deployed' in result.stdout"
+
+- name: Apply Traefik LAN-only Middleware
+  ansible.builtin.shell:
+    cmd: |
+      kubectl apply -f - <<'EOF'
+      apiVersion: traefik.io/v1alpha1
+      kind: Middleware
+      metadata:
+        name: local-ipallowlist
+        namespace: traefik
+      spec:
+        ipAllowList:
+          sourceRange:
+          - "192.168.0.0/16"
+          - "10.0.0.0/8"
+          - "127.0.0.1/32"
+      EOF
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: result
+  changed_when: "'configured' in result.stdout or 'created' in result.stdout"

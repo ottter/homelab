@@ -5,6 +5,8 @@ Provisions a single-node Ubuntu homelab with:
 - System updates and base packages
 - SSH key-only auth, UFW firewall, fail2ban, kernel hardening
 - k3s single-node Kubernetes cluster
+- MetalLB (Layer 2 LoadBalancer) + Traefik (ingress controller)
+- dnsmasq for LAN-wide `*.local` DNS resolution
 - kubeconfig fetched locally so you can use `kubectl` from this machine
 
 All roles are idempotent — re-run `playbook_bootstrap.yml` at any time.
@@ -63,6 +65,7 @@ What it does:
 - Copies kubeconfig to `~/.kube/config` on the server
 - Fetches kubeconfig to `ansible/kubeconfig` with server address rewritten to LAN IP
 - Sets up NFS storage (skipped unless `nfs_enabled: true` in `group_vars/all.yml`)
+- Installs MetalLB (Layer 2 mode) and Traefik ingress controller via Helm; applies IPAddressPool, L2Advertisement, and `local-ipallowlist` Middleware
 - Installs and configures dnsmasq: resolves `*.{domain_suffix}` to Traefik (`traefik_lb_ip`) and `plex.{domain_suffix}` to its own MetalLB IP (`plex_lb_ip`)
 
 **Test from this machine:**
@@ -106,12 +109,23 @@ All tuneable variables are in [`group_vars/all.yml`](group_vars/all.yml):
 | --- | --- | --- |
 | `server_lan_ip` | — | Server LAN IP (set in hosts.yml) |
 | `lan_subnet` | `192.168.0.0/24` | Subnet allowed for SSH/k3s/DNS |
+| `hostname` | `minipc` | Server hostname |
+| `timezone` | `America/New_York` | System timezone |
 | `domain_suffix` | `local` | Domain suffix for dnsmasq — **must match `domain_root` in `terraform/homelab.tfvars`** |
-| `traefik_lb_ip` | `192.168.0.220` | Traefik LoadBalancer IP — **must match first IP of `metallb_pool` in `terraform/homelab.tfvars`** |
-| `plex_lb_ip` | `192.168.0.221` | Plex LoadBalancer IP — **must match `plex_lb_ip` in `terraform/homelab.tfvars`** |
+| `metallb_pool` | `192.168.0.220-192.168.0.230` | MetalLB IP pool — must not overlap your DHCP range |
+| `traefik_lb_ip` | `192.168.0.220` | Traefik LoadBalancer IP — must be first IP of `metallb_pool`; **must match `traefik_lb_ip` in `terraform/homelab.tfvars`** |
+| `plex_lb_ip` | `192.168.0.221` | Plex LoadBalancer IP — must be within `metallb_pool`; **must match `plex_lb_ip` in `terraform/homelab.tfvars`** |
+| `metallb_version` | `0.14.9` | MetalLB Helm chart version |
+| `traefik_version` | `35.2.0` | Traefik Helm chart version |
 | `k3s_version` | `v1.35.3+k3s1` | k3s version to install |
 | `k3s_force_reinstall` | `false` | Set true to reinstall k3s |
+| `ssh_port` | `22` | SSH port |
 | `ssh_password_auth` | `no` | Set to `yes` temporarily if key not yet on server |
+| `fail2ban_maxretry` | `5` | Failed attempts before ban |
+| `fail2ban_bantime` | `3600` | Ban duration in seconds |
 | `nfs_enabled` | `false` | Set to `true` when external drive is attached |
 | `nfs_device` | `/dev/sdb1` | External drive device path |
 | `nfs_mount_point` | `/mnt/plex` | NFS mount point |
+| `nfs_fs_type` | `xfs` | Filesystem type of the external drive |
+| `nfs_owner_uid` | `1000` | UID that owns the NFS directories |
+| `nfs_directories` | see defaults | Subdirectories created under `nfs_mount_point` |

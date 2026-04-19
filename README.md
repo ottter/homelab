@@ -7,8 +7,8 @@ See [`ansible/README.md`](ansible/README.md) and [`terraform/README.md`](terrafo
 ## Structure
 
 ```text
-ansible/    — server provisioning (OS hardening, k3s, NFS)
-terraform/  — cluster workloads and ingress (Traefik, Plex, Radarr, Sonarr, etc.)
+ansible/    — server provisioning (OS hardening, k3s, MetalLB, Traefik, NFS, dnsmasq)
+terraform/  — cluster workloads (Plex, Radarr, Sonarr, Transmission, Homepage, etc.)
 ```
 
 ## Network prerequisites
@@ -17,7 +17,12 @@ These are one-time router/network settings required before deploying.
 
 - **Shrink your router's DHCP pool** to `.2 – .150` (or any range that leaves `.151 – .253` free). MetalLB uses `192.168.0.220 – 192.168.0.230` for LoadBalancer IPs — those addresses must not be in the DHCP pool or collisions will occur.
 - **Reserve `192.168.0.210`** for the homelab node (set a DHCP static lease by MAC address, or assign it manually on the host).
-- No other router config is needed — MetalLB operates in Layer 2 mode and announces IPs via ARP.
+- No router config is required for MetalLB — it operates in Layer 2 mode and announces IPs via ARP.
+- **DNS:** Ansible installs dnsmasq on the node. Point your PC's DNS (or router DNS) at `192.168.0.210` — all `*.local` services resolve automatically. No `/etc/hosts` edits needed.
+- **IP + domain consistency:** Three values must stay in sync across Ansible and Terraform:
+  - `traefik_lb_ip` — `ansible/group_vars/all.yml` and `terraform/homelab.tfvars`
+  - `plex_lb_ip` — `ansible/group_vars/all.yml` and `terraform/homelab.tfvars`
+  - `domain_suffix` (Ansible) / `domain_root` (Terraform) — both default to `local`
 
 ## Deployment order
 
@@ -42,9 +47,9 @@ ansible-playbook playbook_bootstrap.yml
 
 ```sh
 cd terraform/
-cp terraform.tfvars.example terraform.tfvars  # fill in own information
+cp terraform.tfvars homelab.tfvars  # terraform.tfvars is the committed template — copy and fill in secrets
 terraform init
-terraform apply
+terraform apply -var-file=homelab.tfvars
 ```
 
 ## Troubleshooting
