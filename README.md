@@ -1,20 +1,24 @@
 # Single node k3s homelab
 
-Single-node Ubuntu homelab provisioned with Ansible. Runs a k3s Kubernetes cluster with security hardening.
+Single-node Ubuntu homelab provisioned with Ansible. Runs a k3s Kubernetes cluster with Traefik ingress and security hardening.
 
-See [`ansible/README.md`](ansible/README.md) for full setup and run instructions.
+See [`ansible/README.md`](ansible/README.md) and [`terraform/README.md`](terraform/README.md) for full details.
 
 ## Structure
 
 ```text
 ansible/    — server provisioning (OS hardening, k3s, NFS)
-terraform/  — infrastructure as code
+terraform/  — cluster workloads and ingress (Traefik, Plex, Radarr, Sonarr, etc.)
 ```
 
-## Quick start
+## Deployment order
+
+Ansible must run first to provision the server and bring up k3s, then Terraform deploys workloads onto the cluster.
+
+### 1. Provision with Ansible
 
 ```sh
-# Generate SSH key for Ansible (once)
+# Generate SSH key (once)
 ssh-keygen -t ed25519 -C "ansible" -f ~/.ssh/{KEY_NAME}
 ssh-copy-id -i ~/.ssh/{KEY_NAME}.pub {username}@{homelab_server_ip}
 
@@ -23,9 +27,16 @@ cd ansible/
 cp .env.example .env  # fill in own information
 set -a && . .env && set +a
 ansible-galaxy collection install -r requirements.yml
-
-# Run playbook (rerunable)
 ansible-playbook playbook_bootstrap.yml
+```
+
+### 2. Deploy with Terraform
+
+```sh
+cd terraform/
+cp terraform.tfvars.example terraform.tfvars  # fill in own information
+terraform init
+terraform apply
 ```
 
 ## Troubleshooting
