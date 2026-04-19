@@ -1,15 +1,12 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: tfsec
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+    paths: ["terraform/**"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+    paths: ["terraform/**"]
   schedule:
     - cron: '32 14 * * 6'
 
@@ -23,7 +20,7 @@ jobs:
       security-events: write
 
     steps:
-      - name: Clone repo
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Run tfsec
@@ -34,5 +31,4 @@ jobs:
       - name: Upload SARIF file
         uses: github/codeql-action/upload-sarif@v3
         with:
-          # Path to SARIF file relative to the root of the repository
           sarif_file: tfsec.sarif

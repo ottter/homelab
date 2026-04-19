@@ -1,6 +1,6 @@
 # Homelab Ansible
 
-Provisions a single-node Ubuntu homelab (`minipc` at `192.168.0.210`) with:
+Provisions a single-node Ubuntu homelab with:
 
 - System updates and base packages
 - SSH key-only auth, UFW firewall, fail2ban, kernel hardening
@@ -11,12 +11,13 @@ All roles are idempotent — re-run `playbook_bootstrap.yml` at any time.
 
 ## Prerequisites (manual — do once)
 
-1. **Ubuntu installed** on the minipc with user `james`
-2. **DHCP reservation** — ensure `192.168.0.210` is reserved for the minipc's MAC in your router
-3. **SSH key on server** — `~/.ssh/ansible-mini.pub` must already be in `james@192.168.0.210:.ssh/authorized_keys`
+1. **Ubuntu installed** on the server with a sudo user
+2. **DHCP reservation** — ensure the server IP is reserved for its MAC in your router
+3. **SSH key on server** — your Ansible SSH key must already be in `authorized_keys`
 
    ```sh
-   ssh-copy-id -i ~/.ssh/ansible-mini.pub james@192.168.0.210
+   ssh-keygen -t ed25519 -C "ansible" -f ~/.ssh/{KEY_NAME}
+   ssh-copy-id -i ~/.ssh/{KEY_NAME}.pub {username}@{homelab_server_ip}
    ```
 
 4. **Ansible collections** installed:
@@ -52,15 +53,15 @@ ansible-playbook playbook_bootstrap.yml
 What it does:
 
 - Updates all packages
-- Installs base tools, chrony (NTP), ufw, fail2ban
+- Installs base tools, ufw, fail2ban
 - Copies SSH public key to `authorized_keys` (idempotent — safe on fresh installs)
 - Configures UFW: deny all incoming except SSH (port 22) and k3s API (port 6443) from LAN only
-- Hardens SSH: key-only auth, no root login, restricted to user `james`
+- Hardens SSH: key-only auth, no root login, restricted to configured user
 - Applies kernel sysctl hardening
 - Configures fail2ban for SSH (5 retries, 1h ban)
 - Installs k3s (skips if already installed, unless `k3s_force_reinstall: true`)
-- Copies kubeconfig to `/home/james/.kube/config` on the minipc
-- Fetches kubeconfig to `ansible/kubeconfig` with server address rewritten to `192.168.0.210`
+- Copies kubeconfig to `~/.kube/config` on the server
+- Fetches kubeconfig to `ansible/kubeconfig` with server address rewritten to LAN IP
 - Sets up NFS storage (skipped unless `nfs_enabled: true` in `group_vars/all.yml`)
 
 **Test from this machine:**
@@ -69,16 +70,16 @@ What it does:
 KUBECONFIG=ansible/kubeconfig kubectl get nodes
 ```
 
-**Test from the minipc:**
+**Test from the server:**
 
 ```sh
-ssh james@192.168.0.210 -i ~/.ssh/ansible-mini
+ssh {username}@{homelab_server_ip} -i ~/.ssh/{KEY_NAME}
 kubectl get nodes
 ```
 
 ## NFS storage (when external drive is attached)
 
-1. Attach the drive and identify it on the minipc: `lsblk`
+1. Attach the drive and identify it on the server: `lsblk`
 2. Update `nfs_device` and `nfs_mount_point` in `group_vars/all.yml` if needed
 3. Set `nfs_enabled: true` in `group_vars/all.yml`
 4. Re-run: `ansible-playbook playbook_bootstrap.yml`
@@ -87,13 +88,13 @@ kubectl get nodes
 
 ```sh
 # SSH: should connect with key, no password prompt
-ssh james@192.168.0.210 -i ~/.ssh/ansible-mini
+ssh {username}@{homelab_server_ip} -i ~/.ssh/{KEY_NAME}
 
 # UFW status
-ssh james@192.168.0.210 -i ~/.ssh/ansible-mini 'sudo ufw status'
+ssh {username}@{homelab_server_ip} -i ~/.ssh/{KEY_NAME} 'sudo ufw status'
 
 # fail2ban status
-ssh james@192.168.0.210 -i ~/.ssh/ansible-mini 'sudo fail2ban-client status sshd'
+ssh {username}@{homelab_server_ip} -i ~/.ssh/{KEY_NAME} 'sudo fail2ban-client status sshd'
 ```
 
 ## Variable reference
@@ -102,9 +103,9 @@ All tuneable variables are in [`group_vars/all.yml`](group_vars/all.yml):
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `server_lan_ip` | `192.168.0.210` | Server LAN IP |
+| `server_lan_ip` | — | Server LAN IP (set in hosts.yml) |
 | `lan_subnet` | `192.168.0.0/24` | Subnet allowed for SSH/k3s |
-| `k3s_version` | `v1.29.3+k3s1` | k3s version to install |
+| `k3s_version` | `v1.35.3+k3s1` | k3s version to install |
 | `k3s_force_reinstall` | `false` | Set true to reinstall k3s |
 | `ssh_password_auth` | `no` | Set to `yes` temporarily if key not yet on server |
 | `nfs_enabled` | `false` | Set to `true` when external drive is attached |

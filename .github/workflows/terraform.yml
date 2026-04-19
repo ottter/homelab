@@ -2,15 +2,17 @@ name: Terraform Format and Docs
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+    paths: ["terraform/**"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+    paths: ["terraform/**"]
 
 jobs:
   fmt-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
