@@ -23,4 +23,4 @@ jobs:
         run: pip install ansible-lint
 
       - name: Run ansible-lint
-        run: ansible-lint ansible/
+        run: ansible-lint -v ansible/

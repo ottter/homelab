@@ -2,7 +2,10 @@ domain_root = "local"
 kubeconfig  = "~/.kube/config"
 
 # List of IP addresses associated to Control and Worker nodes
-node_ip = ["192.168.0.144"]
+node_ip = ["192.168.0.210"]
+
+# Networking: MetalLB IP pool (Traefik is assigned the first IP automatically)
+metallb_pool = "192.168.0.220-192.168.0.230"
 
 ## # Module: Discord
 enable_discord  = false

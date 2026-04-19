@@ -1,3 +1,19 @@
+variable "metallb_pool" {
+  default     = "192.168.0.220-192.168.0.230"
+  description = "MetalLB IP address pool range (e.g. '192.168.0.220-192.168.0.230'). Must be outside the router's DHCP range. Traefik is assigned the first IP in this range."
+  type        = string
+
+  validation {
+    condition     = can(regex("^(10|172\\.(1[6-9]|2[0-9]|3[01])|192\\.168)\\.", var.metallb_pool))
+    error_message = "metallb_pool must start with a private RFC1918 address (10.x, 172.16-31.x, 192.168.x)."
+  }
+
+  validation {
+    condition     = can(regex("^(\\d{1,3}\\.){3}\\d{1,3}-(\\d{1,3}\\.){3}\\d{1,3}$", var.metallb_pool))
+    error_message = "metallb_pool must be in the format 'START_IP-END_IP' (e.g. '192.168.0.220-192.168.0.230')."
+  }
+}
+
 variable "kubeconfig" {
   default     = "~/.kube/config"
   description = "Location of kube config file to access cluster"
@@ -7,7 +23,7 @@ variable "domain_root" {
   description = "Root domain name for the environment. (.local; homelab.local)"
 }
 variable "node_ip" {
-  default     = ["192.168.0.144"]
+  default     = ["192.168.0.210"]
   description = "A List of IP Addresses associated with the cluster"
   type        = list(any)
 }

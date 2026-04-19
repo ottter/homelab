@@ -1,7 +1,6 @@
-module "nginx" {
-  source      = "./modules/nginx"
-  domain_root = var.domain_root
-  node_ip     = element(var.node_ip, 0)
+module "networking" {
+  source       = "./modules/networking"
+  metallb_pool = var.metallb_pool
 }
 
 module "kubecost" {
@@ -28,8 +27,8 @@ module "homepage" {
   stock_watchlist       = var.stock_watchlist
   apikey_finnhub        = var.apikey_finnhub
   apikey_openweathermap = var.apikey_openweathermap
-  apikey_radarr         = module.radarr[0].radarr_api_key
-  apikey_sonarr         = module.sonarr[0].sonarr_api_key
+  apikey_radarr         = var.enable_radarr ? module.radarr[0].radarr_api_key : ""
+  apikey_sonarr         = var.enable_sonarr ? module.sonarr[0].sonarr_api_key : ""
   apikey_weatherapi     = var.apikey_weatherapi
 }
 

@@ -1,65 +1,128 @@
-<!-- BEGIN_TF_DOCS -->
-## Requirements
+# Terraform
 
-| Name | Version |
-|------|---------|
-| <a name="requirement_helm"></a> [helm](#requirement\_helm) | 2.17.0 |
-| <a name="requirement_kubernetes"></a> [kubernetes](#requirement\_kubernetes) | 2.36.0 |
-| <a name="requirement_tls"></a> [tls](#requirement\_tls) | 4.0.6 |
+Deploys workloads onto the k3s cluster provisioned by Ansible. Run Ansible first.
 
-## Providers
+## Deployment
 
-No providers.
+```sh
+cp terraform.tfvars.example terraform.tfvars  # fill in variables
+terraform init
+terraform apply
+```
+
+## Ingress: Traefik + MetalLB
+
+MetalLB (Layer 2 mode) assigns real LAN IPs to LoadBalancer services — no NodePort tricks needed.
+
+| Component     | IP / Range                         | tfvars key            |
+| ------------- | ---------------------------------- | --------------------- |
+| Node (minipc) | `192.168.0.210`                    | `node_ip`             |
+| MetalLB pool  | `192.168.0.220 – 192.168.0.230`    | `metallb_pool`        |
+| Traefik       | first IP in pool (`192.168.0.220`) | derived automatically |
+
+Traefik is configured with:
+
+- HTTP → HTTPS redirect on standard ports 80/443
+- Fixed LoadBalancer IP `192.168.0.220` via MetalLB
+- `local-ipallowlist` middleware (LAN-only access for Transmission)
+
+All services use `ingressClassName: traefik` and self-signed TLS certs generated per-namespace by the `tls` provider.
+
+> **Router prerequisite:** Set DHCP pool to `.2–.150`. Leave `.151–.253` for static use to avoid collisions with the MetalLB pool.
+
+## Notes
+
+### Accessing Services and Utilizing Self-Signed Certs
+
+Update `/etc/hosts` (Linux) or `C:\Windows\System32\drivers\etc\hosts` (Windows) with the following:
+
+```sh
+# Traefik ingress services — point to MetalLB IP
+192.168.0.220 kubecost.local transmission.local radarr.local sonarr.local homepage.local
+
+# Plex — accessed directly via node NodePort, not through Traefik
+192.168.0.210 plex.local
+```
+
+- Change `local` to whatever the `domain_root` variable is in your tfvars
+- Plex is exposed via NodePort 32000 on the node directly: `http://192.168.0.210:32000/web/`
+
+### Plex: Preconfiguration
+
+This is utilizing the docker image [lscr.io/linuxserver/plex:latest](https://hub.docker.com/r/linuxserver/plex) and
+assumes that the 1000:1000 account is the one managing plex. Change as needed. **Preconfiguration can be skipped if the
+cluster was deployed via the Ansible script!**
+
+Getting the [Plex Claim token](https://www.plex.tv/claim/) is optional but preferred for easier setup. It lasts for 4
+minutes so make it quick.
+
+```sh
+/mnt/plex/
+├── downloads/         # Transmission temp storage
+│   ├── incomplete/
+│   └── complete/
+├── media/
+│   ├── movies/        # Radarr
+│   └── tv/            # Sonarr
+├── config/
+```
+
+```sh
+# This is completed by Ansible: homelab/task/nfs.yml
+sudo chown -R 1000:1000 /mnt/plex
+sudo chmod -R 7555 /mnt/plex
+cd /mnt/plex
+mkdir -p {downloads/{incomplete,complete},media/{movies,tv},config}
+```
+
+Access Plex by going to [http://{node-ip}:32000/web/](https://www.plex.tv/)
+
+### Plex: Moving media
+
+Moving a file from host computer to server:
+
+```sh
+cd /mnt/c/Users/James/Videos/Media
+rsync -av --progress "Ghost In The Shell 1995.mp4" james@lab:/mnt/plex/movies/
+```
 
 ## Modules
 
-| Name | Source | Version |
-|------|--------|---------|
-| <a name="module_discord"></a> [discord](#module\_discord) | ./modules/discord | n/a |
-| <a name="module_homepage"></a> [homepage](#module\_homepage) | ./modules/homepage | n/a |
-| <a name="module_kubecost"></a> [kubecost](#module\_kubecost) | ./modules/kubecost | n/a |
-| <a name="module_nginx"></a> [nginx](#module\_nginx) | ./modules/nginx | n/a |
-| <a name="module_plex"></a> [plex](#module\_plex) | ./modules/plex | n/a |
-| <a name="module_radarr"></a> [radarr](#module\_radarr) | ./modules/radarr | n/a |
-| <a name="module_sonarr"></a> [sonarr](#module\_sonarr) | ./modules/sonarr | n/a |
-| <a name="module_transmission"></a> [transmission](#module\_transmission) | ./modules/transmission | n/a |
+### Networking (MetalLB + Traefik)
 
-## Resources
+Both are core cluster infrastructure and always deployed together via `modules/networking/`. Unlike other modules, networking has no feature flag — it is unconditionally applied on every `terraform apply`.
 
-No resources.
+- **MetalLB** — Layer 2 LoadBalancer; IP pool `192.168.0.220–192.168.0.230`; announces IPs via ARP, no router config required.
+- **Traefik** — Ingress controller; fixed IP `192.168.0.220` via MetalLB annotation; HTTP→HTTPS redirect; TLS termination with per-service self-signed secrets.
+- `local-ipallowlist` Middleware restricts Transmission to LAN ranges.
 
-## Inputs
+### Discord-bot
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_apikey_finnhub"></a> [apikey\_finnhub](#input\_apikey\_finnhub) | API key from <https://finnhub.io/> | `string` | `"apikey"` | no |
-| <a name="input_apikey_openweathermap"></a> [apikey\_openweathermap](#input\_apikey\_openweathermap) | API key from <https://openweathermap.org/> | `string` | `"apikey"` | no |
-| <a name="input_apikey_weatherapi"></a> [apikey\_weatherapi](#input\_apikey\_weatherapi) | API key from <https://www.weatherapi.com/> | `string` | `"apikey"` | no |
-| <a name="input_discord_image"></a> [discord\_image](#input\_discord\_image) | Name of Docker image to deploy | `any` | n/a | yes |
-| <a name="input_domain_root"></a> [domain\_root](#input\_domain\_root) | Root domain name for the environment. (.local; homelab.local) | `string` | `"local"` | no |
-| <a name="input_enable_discord"></a> [enable\_discord](#input\_enable\_discord) | Enable the Discord module | `bool` | `false` | no |
-| <a name="input_enable_homepage"></a> [enable\_homepage](#input\_enable\_homepage) | Enable the Homepage module | `bool` | `false` | no |
-| <a name="input_enable_kubecost"></a> [enable\_kubecost](#input\_enable\_kubecost) | Enable the Kubecost module | `bool` | `false` | no |
-| <a name="input_enable_plex"></a> [enable\_plex](#input\_enable\_plex) | Enable the Plex module | `bool` | `false` | no |
-| <a name="input_enable_radarr"></a> [enable\_radarr](#input\_enable\_radarr) | Enable the Radarr module | `bool` | `false` | no |
-| <a name="input_enable_sonarr"></a> [enable\_sonarr](#input\_enable\_sonarr) | Enable the Sonarr module | `bool` | `false` | no |
-| <a name="input_enable_transmission"></a> [enable\_transmission](#input\_enable\_transmission) | Enable the Transmission module | `bool` | `false` | no |
-| <a name="input_github_pat"></a> [github\_pat](#input\_github\_pat) | Github PAT to access image on Github Container Registry | `any` | n/a | yes |
-| <a name="input_github_username"></a> [github\_username](#input\_github\_username) | Github Username to access image on Github Container Registry | `any` | n/a | yes |
-| <a name="input_kubeconfig"></a> [kubeconfig](#input\_kubeconfig) | Location of kube config file to access cluster | `string` | `"~/.kube/config"` | no |
-| <a name="input_kubecost_token"></a> [kubecost\_token](#input\_kubecost\_token) | Kubecost token. A free trial one can be gotten from <https://www.kubecost.com/install.html> | `any` | n/a | yes |
-| <a name="input_node_ip"></a> [node\_ip](#input\_node\_ip) | A List of IP Addresses associated with the cluster | `list(any)` | <pre>[<br/>  "192.168.0.144"<br/>]</pre> | no |
-| <a name="input_plex_path_config"></a> [plex\_path\_config](#input\_plex\_path\_config) | Filepath on NFS share for Plex config | `string` | `"/mnt/plex/config"` | no |
-| <a name="input_plex_path_downloads"></a> [plex\_path\_downloads](#input\_plex\_path\_downloads) | n/a | `string` | `"/mnt/plex/downloads"` | no |
-| <a name="input_plex_path_movies"></a> [plex\_path\_movies](#input\_plex\_path\_movies) | Filepath on NFS share for Plex movies | `string` | `"/mnt/plex/movies"` | no |
-| <a name="input_plex_path_root"></a> [plex\_path\_root](#input\_plex\_path\_root) | Filepath on NFS share for Plex root location | `string` | `"/mnt/plex"` | no |
-| <a name="input_plex_path_tv"></a> [plex\_path\_tv](#input\_plex\_path\_tv) | Filepath on NFS share for Plex tv | `string` | `"/mnt/plex/tv"` | no |
-| <a name="input_plex_token"></a> [plex\_token](#input\_plex\_token) | Create a Plex account and get a token from <https://www.plex.tv/claim/> | `string` | `"apikey"` | no |
-| <a name="input_stock_watchlist"></a> [stock\_watchlist](#input\_stock\_watchlist) | List of stock ticker symbols (compatible with Finnhub API) | `list(string)` | <pre>[<br/>  "SPY",<br/>  "NVDA",<br/>  "TSM",<br/>  "MSFT",<br/>  "AAPL"<br/>]</pre> | no |
-| <a name="input_transmission_pass"></a> [transmission\_pass](#input\_transmission\_pass) | Basic Auth password to access Transmission. Can be disabled in values.yaml | `string` | `"password"` | no |
-| <a name="input_transmission_user"></a> [transmission\_user](#input\_transmission\_user) | Basic Auth username to access Transmission. Can be disabled in values.yaml | `string` | `"admin"` | no |
+```sh
+# force k3s to pull the latest image and redeploy the pod
+kubectl rollout restart deployment discord-bot
+```
 
-## Outputs
+### Radarr
 
-No outputs.
-<!-- END_TF_DOCS -->
+- Movie management for Plex using torrents or Usenet.
+- Connects to Plex and Transmission.
+
+### Sonarr
+
+- TV show management, similar to Radarr.
+- Connects to Plex and Transmission.
+
+### Homepage
+
+- Dashboard for managing all services.
+- Displays app links, system stats, and service health.
+
+### Transmission
+
+- Torrent client used by Radarr/Sonarr.
+
+### Kubecost
+
+- Cost monitoring for Kubernetes.
+- Track resource usage and costs across namespaces and workloads.

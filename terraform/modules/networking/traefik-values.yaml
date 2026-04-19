@@ -2,14 +2,14 @@ globalArguments:
   - "--global.sendAnonymousUsage=false"
 
 service:
-  type: NodePort
+  type: LoadBalancer
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "${traefik_lb_ip}"
 
 ports:
   web:
-    nodePort: 30080
     redirectTo:
       port: websecure
   websecure:
-    nodePort: 30443
     tls:
       enabled: true

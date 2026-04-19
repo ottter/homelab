@@ -11,6 +11,14 @@ ansible/    — server provisioning (OS hardening, k3s, NFS)
 terraform/  — cluster workloads and ingress (Traefik, Plex, Radarr, Sonarr, etc.)
 ```
 
+## Network prerequisites
+
+These are one-time router/network settings required before deploying.
+
+- **Shrink your router's DHCP pool** to `.2 – .150` (or any range that leaves `.151 – .253` free). MetalLB uses `192.168.0.220 – 192.168.0.230` for LoadBalancer IPs — those addresses must not be in the DHCP pool or collisions will occur.
+- **Reserve `192.168.0.210`** for the homelab node (set a DHCP static lease by MAC address, or assign it manually on the host).
+- No other router config is needed — MetalLB operates in Layer 2 mode and announces IPs via ARP.
+
 ## Deployment order
 
 Ansible must run first to provision the server and bring up k3s, then Terraform deploys workloads onto the cluster.
