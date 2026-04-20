@@ -18,7 +18,15 @@ These are one-time router/network settings required before deploying.
 - **Shrink your router's DHCP pool** to `.2 – .150` (or any range that leaves `.151 – .253` free). MetalLB uses `192.168.0.220 – 192.168.0.230` for LoadBalancer IPs — those addresses must not be in the DHCP pool or collisions will occur.
 - **Reserve `192.168.0.210`** for the homelab node (set a DHCP static lease by MAC address, or assign it manually on the host).
 - No router config is required for MetalLB — it operates in Layer 2 mode and announces IPs via ARP.
-- **DNS:** Ansible installs dnsmasq on the node. Point your PC's DNS (or router DNS) at `192.168.0.210` — all `*.local` services resolve automatically. No `/etc/hosts` edits needed.
+- **DNS:** Ansible installs dnsmasq on the node. Point your PC's DNS (or router DNS) at `192.168.0.210` — all `*.local` services resolve automatically. If you can't change DNS settings, add entries manually to your hosts file instead:
+  - **Windows:** `C:\Windows\System32\drivers\etc\hosts`
+  - **Linux/macOS:** `/etc/hosts`
+
+  ```text
+  192.168.0.220  homepage.local traefik.local sonarr.local radarr.local transmission.local
+  192.168.0.221  plex.local
+  ```
+
 - **IP + domain consistency:** Three values must stay in sync across Ansible and Terraform:
   - `traefik_lb_ip` — `ansible/group_vars/all.yml` and `terraform/homelab.tfvars`
   - `plex_lb_ip` — `ansible/group_vars/all.yml` and `terraform/homelab.tfvars`
@@ -51,6 +59,29 @@ cp terraform.tfvars homelab.tfvars  # terraform.tfvars is the committed template
 terraform init
 terraform apply -var-file=homelab.tfvars
 ```
+
+## Trusting the homelab CA
+
+Ansible writes the CA cert to `/etc/homelab-ca.crt` on the server. Copy it to your PC and trust it once — all `*.local` services will then show a valid certificate with no browser warnings.
+
+```sh
+scp {username}@{homelab_server_ip}:/etc/homelab-ca.crt ~/homelab-ca.crt
+```
+
+**Windows** — import into the system trust store:
+
+```powershell
+certutil -addstore -f "Root" homelab-ca.crt
+```
+
+**Linux** — copy to trusted CAs and update:
+
+```sh
+sudo cp homelab-ca.crt /usr/local/share/ca-certificates/homelab-ca.crt
+sudo update-ca-certificates
+```
+
+**Firefox** — Firefox uses its own trust store. Go to Settings → Privacy & Security → Certificates → View Certificates → Authorities → Import, and select `homelab-ca.crt`.
 
 ## Troubleshooting
 

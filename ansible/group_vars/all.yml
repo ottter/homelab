@@ -1,40 +1,41 @@
 ---
 # Network
-lan_subnet:    "192.168.0.0/24"
+lan_subnet: "192.168.0.0/24"
 server_lan_ip: "192.168.0.210"
-metallb_pool:  "192.168.0.220-192.168.0.230"  # MetalLB IP pool; first IP is used by Traefik
+metallb_pool: "192.168.0.220-192.168.0.230"  # MetalLB IP pool; first IP is used by Traefik
 traefik_lb_ip: "192.168.0.220"  # Must be first IP of metallb_pool; must match traefik_lb_ip in terraform/homelab.tfvars
-plex_lb_ip:    "192.168.0.221"  # Must be within metallb_pool; must match plex_lb_ip in terraform/homelab.tfvars
-domain_suffix: "local"          # Must match domain_root in terraform/homelab.tfvars
+plex_lb_ip: "192.168.0.221"  # Must be within metallb_pool; must match plex_lb_ip in terraform/homelab.tfvars
+domain_suffix: "local"  # Must match domain_root in terraform/homelab.tfvars
 
 # System
 hostname: "minipc"
 timezone: "America/New_York"
 
 # SSH hardening
-ssh_port:                   22
-ssh_allowed_users:          ["{{ ansible_user }}"]
-ssh_password_auth:          "no"
-ssh_permit_root_login:      "no"
-ssh_max_auth_tries:         3
-ssh_client_alive_interval:  300
+ssh_port: 22
+ssh_allowed_users: ["{{ ansible_user }}"]
+ssh_password_auth: "no"
+ssh_permit_root_login: "no"
+ssh_max_auth_tries: 3
+ssh_client_alive_interval: 300
 ssh_client_alive_count_max: 2
 
 # fail2ban
 fail2ban_maxretry: 5
-fail2ban_bantime:  3600
+fail2ban_bantime: 3600
 fail2ban_findtime: 600
 
 # k3s
-k3s_version:         "v1.35.3+k3s1"
+k3s_version: "v1.35.3+k3s1"
 k3s_force_reinstall: false
 
-# Networking (MetalLB + Traefik)
+# Networking (MetalLB + Traefik + cert-manager)
 metallb_version: "0.14.9"
 traefik_version: "35.2.0"
+certmanager_version: "v1.17.2"
 
 # NFS (disabled until external drive is attached — set nfs_enabled: true to activate)
-nfs_enabled:     false
-nfs_device:      "/dev/sdb1"
+nfs_enabled: false
+nfs_device: "/dev/sdb1"
 nfs_mount_point: "/mnt/plex"
-nfs_owner_uid:   1000
+nfs_owner_uid: 1000

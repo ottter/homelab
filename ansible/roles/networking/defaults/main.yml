@@ -1,7 +1,8 @@
 ---
 # Fallback defaults — all of these should be set in group_vars/all.yml.
 # Values here are only used if group_vars doesn't define them.
-metallb_pool:    "192.168.0.220-192.168.0.230"
-traefik_lb_ip:   "192.168.0.220"  # Must match first IP of metallb_pool
+metallb_pool: "192.168.0.220-192.168.0.230"
+traefik_lb_ip: "192.168.0.220"  # Must match first IP of metallb_pool
 metallb_version: "0.14.9"
 traefik_version: "35.2.0"
+certmanager_version: "v1.17.2"

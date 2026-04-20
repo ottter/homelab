@@ -1,3 +1,5 @@
+homelab-ca.crt
+
 # ansible secrets and generated files
 /ansible/.env
 /ansible/kubeconfig

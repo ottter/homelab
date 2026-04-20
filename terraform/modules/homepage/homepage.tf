@@ -35,7 +35,7 @@ resource "helm_release" "homepage" {
 
   values = [
     templatefile("${path.module}/values-tmpl.yaml", {
-      tls_secret = kubernetes_secret.tls.metadata[0].name
+      tls_secret = "${kubernetes_namespace.ns.metadata[0].name}-tls"
       full_path  = "${var.domain_sub}.${var.domain_root}"
     })
   ]

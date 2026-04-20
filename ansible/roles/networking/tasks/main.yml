@@ -32,6 +32,25 @@
   register: result
   changed_when: "'configured' in result.stdout or 'created' in result.stdout"
 
+- name: Create cert-manager namespace with PSA exemption
+  ansible.builtin.shell:
+    cmd: |
+      kubectl apply -f - <<'EOF'
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: cert-manager
+        labels:
+          pod-security.kubernetes.io/enforce: privileged
+          pod-security.kubernetes.io/audit: privileged
+          pod-security.kubernetes.io/warn: privileged
+      EOF
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: result
+  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+
 - name: Create traefik namespace with PSA exemption
   ansible.builtin.shell:
     cmd: |
@@ -58,6 +77,11 @@
 
 - name: Add Traefik Helm repo
   ansible.builtin.command: helm repo add traefik https://traefik.github.io/charts
+  register: result
+  changed_when: "'already exists' not in result.stdout"
+
+- name: Add cert-manager Helm repo
+  ansible.builtin.command: helm repo add jetstack https://charts.jetstack.io
   register: result
   changed_when: "'already exists' not in result.stdout"
 
@@ -156,3 +180,90 @@
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   register: result
   changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+
+- name: Install cert-manager via Helm
+  ansible.builtin.command: >
+    helm upgrade --install cert-manager jetstack/cert-manager
+    --namespace cert-manager
+    --create-namespace
+    --version {{ certmanager_version }}
+    --set crds.enabled=true
+    --wait --timeout 120s
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: result
+  changed_when: "'has been upgraded' in result.stdout or 'has been deployed' in result.stdout"
+
+- name: Apply homelab CA ClusterIssuer
+  ansible.builtin.shell:
+    cmd: |
+      kubectl apply -f - <<'EOF'
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: homelab-ca-issuer
+      spec:
+        selfSigned: {}
+      ---
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: homelab-ca
+        namespace: cert-manager
+      spec:
+        isCA: true
+        commonName: HomeLab CA
+        secretName: homelab-ca-secret
+        privateKey:
+          algorithm: RSA
+          size: 2048
+        issuerRef:
+          name: homelab-ca-issuer
+          kind: ClusterIssuer
+          group: cert-manager.io
+      ---
+      apiVersion: cert-manager.io/v1
+      kind: ClusterIssuer
+      metadata:
+        name: homelab-ca
+      spec:
+        ca:
+          secretName: homelab-ca-secret
+      EOF
+    executable: /bin/bash
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: result
+  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+
+- name: Wait for homelab CA certificate to be ready
+  ansible.builtin.command: >
+    kubectl wait certificate homelab-ca
+    --namespace cert-manager
+    --for=condition=Ready
+    --timeout=60s
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  changed_when: false
+
+- name: Export homelab CA certificate for browser trust
+  ansible.builtin.shell: |
+    kubectl get secret homelab-ca-secret -n cert-manager -o jsonpath='{.data.tls\.crt}' | base64 -d
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: homelab_ca_cert
+  changed_when: false
+
+- name: Write CA cert to /etc/homelab-ca.crt
+  ansible.builtin.copy:
+    content: "{{ homelab_ca_cert.stdout }}"
+    dest: /etc/homelab-ca.crt
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Copy CA cert to local working directory
+  ansible.builtin.fetch:
+    src: /etc/homelab-ca.crt
+    dest: "{{ playbook_dir }}/../homelab-ca.crt"
+    flat: true

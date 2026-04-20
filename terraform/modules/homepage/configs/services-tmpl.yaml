@@ -2,15 +2,6 @@
 # For configuration options and examples, please see:
 # https://gethomepage.dev/latest/configs/services
 
-- Infrastructure:
-  - Traefik:
-      icon: traefik.png
-      href: https://traefik.${domain_root}/
-      description: Ingress controller
-      widget:
-        type: traefik
-        url: http://${traefik_lb_ip}:9000
-
 - Arr:
   - Sonarr:
       icon: sonarr.png

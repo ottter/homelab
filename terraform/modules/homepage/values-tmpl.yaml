@@ -26,6 +26,9 @@ ingress:
         enabled: true
       traefik:
         enabled: true
+        middlewares:
+          - name: local-ipallowlist
+            namespace: traefik
     hosts:
       - host: ${full_path}
         paths:
