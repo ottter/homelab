@@ -1,8 +1,5 @@
-resource "kubernetes_namespace" "ns" {
+resource "kubernetes_namespace_v1" "ns" {
   metadata {
-    labels = {
-      istio-injection = "enabled"
-    }
     name = "sonarr"
   }
 }
@@ -10,18 +7,19 @@ resource "kubernetes_namespace" "ns" {
 # https://truecharts.org/charts/stable/sonarr/
 resource "helm_release" "sonarr" {
   name      = "sonarr"
-  namespace = kubernetes_namespace.ns.metadata[0].name
+  namespace = kubernetes_namespace_v1.ns.metadata[0].name
 
-  repository = "oci://tccr.io/truecharts"
+  repository = "oci://oci.trueforge.org/truecharts"
   chart      = "sonarr"
 
   values = [
     templatefile("${path.module}/values-tmpl.yaml", {
-      tls_secret       = kubernetes_secret.tls.metadata[0].name
+      tls_secret       = "${kubernetes_namespace_v1.ns.metadata[0].name}-tls"
       full_path        = "${var.domain_sub}.${var.domain_root}"
       homepage_enabled = var.homepage_enabled
-      plexdir_tv       = "${var.plexdir_tv}"
-      server_ip        = "${var.server_ip}"
+      nfs_enabled      = var.nfs_enabled
+      nfs_mount_point  = var.nfs_mount_point
+      server_ip        = var.server_ip
     })
   ]
 }
@@ -30,13 +28,14 @@ resource "null_resource" "configure_sonarr" {
   count = var.transmission_enabled ? 1 : 0
 
   provisioner "local-exec" {
-    command     = "${path.module}/files/config.sh $NS $TUSER $TPASS $TNS"
+    command     = "${path.module}/files/config.sh $NS $TUSER $TPASS $TNS 9091 $DOMAIN_ROOT"
     interpreter = ["/bin/bash", "-c"]
     environment = {
-      NS    = kubernetes_namespace.ns.metadata[0].name
-      TUSER = var.transmission_user
-      TPASS = var.transmission_pass
-      TNS   = var.transmission_ns
+      NS          = kubernetes_namespace_v1.ns.metadata[0].name
+      TUSER       = var.transmission_user
+      TPASS       = var.transmission_pass
+      TNS         = var.transmission_ns
+      DOMAIN_ROOT = var.domain_root
     }
   }
 

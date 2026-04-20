@@ -61,3 +61,15 @@ variable "stock_watchlist" {
   description = "List of stock ticker symbols (compatible with Finnhub API)"
   type        = list(string)
 }
+
+variable "transmission_user" {
+  default   = ""
+  type      = string
+  sensitive = true
+}
+
+variable "transmission_pass" {
+  default   = ""
+  type      = string
+  sensitive = true
+}

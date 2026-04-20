@@ -16,9 +16,11 @@ module "homepage" {
   stock_watchlist       = var.stock_watchlist
   apikey_finnhub        = var.apikey_finnhub
   apikey_openweathermap = var.apikey_openweathermap
+  apikey_weatherapi     = var.apikey_weatherapi
   apikey_radarr         = var.enable_radarr ? module.radarr[0].radarr_api_key : ""
   apikey_sonarr         = var.enable_sonarr ? module.sonarr[0].sonarr_api_key : ""
-  apikey_weatherapi     = var.apikey_weatherapi
+  transmission_user     = var.enable_transmission ? var.transmission_user : ""
+  transmission_pass     = var.enable_transmission ? var.transmission_pass : ""
 }
 
 module "plex" {
@@ -38,7 +40,8 @@ module "radarr" {
   count                = var.enable_radarr ? 1 : 0
   domain_root          = var.domain_root
   server_ip            = element(var.node_ip, 0)
-  plexdir_movies       = var.plex_path_movies
+  nfs_enabled          = var.nfs_enabled
+  nfs_mount_point      = var.nfs_mount_point
   homepage_enabled     = var.enable_homepage
   transmission_enabled = var.enable_transmission
   transmission_user    = var.transmission_user
@@ -51,7 +54,8 @@ module "sonarr" {
   count                = var.enable_sonarr ? 1 : 0
   domain_root          = var.domain_root
   server_ip            = element(var.node_ip, 0)
-  plexdir_tv           = var.plex_path_tv
+  nfs_enabled          = var.nfs_enabled
+  nfs_mount_point      = var.nfs_mount_point
   homepage_enabled     = var.enable_homepage
   transmission_enabled = var.enable_transmission
   transmission_user    = var.transmission_user
@@ -60,11 +64,12 @@ module "sonarr" {
 }
 
 module "transmission" {
-  source            = "./modules/transmission"
-  count             = var.enable_transmission ? 1 : 0
-  domain_root       = var.domain_root
-  plexdir_downloads = var.plex_path_downloads
-  homepage_enabled  = var.enable_homepage
-  username          = var.transmission_user
-  password          = var.transmission_pass
+  source              = "./modules/transmission"
+  count               = var.enable_transmission ? 1 : 0
+  domain_root         = var.domain_root
+  plexdir_downloads   = var.plex_path_downloads
+  transmission_config = var.plex_path_config_transmission
+  homepage_enabled    = var.enable_homepage
+  username            = var.transmission_user
+  password            = var.transmission_pass
 }

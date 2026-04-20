@@ -2,36 +2,49 @@ variable "domain_root" {
   default = "local"
   type    = string
 }
+
 variable "domain_sub" {
   default = "sonarr"
   type    = string
 }
+
 variable "homepage_enabled" {
   default = true
   type    = bool
 }
-variable "plexdir_tv" {
-  default = "/mnt/plex/tv"
+
+variable "nfs_enabled" {
+  default = false
+  type    = bool
+}
+
+variable "nfs_mount_point" {
+  default = "/mnt/plex"
   type    = string
 }
-variable "plexdir_root" {
-  default     = "/mnt/plex"
-  description = "Filepath on NFS share for Plex root location"
-}
+
 variable "transmission_user" {
-  default = "admin"
-  type    = string
+  default   = ""
+  type      = string
+  sensitive = true
 }
+
 variable "transmission_pass" {
-  default = "password"
-  type    = string
+  default   = ""
+  type      = string
+  sensitive = true
 }
+
 variable "transmission_ns" {
   default = "transmission"
   type    = string
 }
+
 variable "transmission_enabled" {
   default = true
   type    = bool
 }
-variable "server_ip" {}
+
+variable "server_ip" {
+  type = string
+}

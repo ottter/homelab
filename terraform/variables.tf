@@ -1,7 +1,7 @@
 variable "node_ip" {
   default     = ["192.168.0.210"]
   description = "A List of IP Addresses associated with the cluster"
-  type        = list(any)
+  type        = list(string)
 }
 
 variable "traefik_lb_ip" {
@@ -86,12 +86,18 @@ variable "apikey_weatherapi" {
 variable "plex_token" {
   default     = "apikey"
   description = "Create a Plex account and get a token from https://www.plex.tv/claim/"
+  type        = string
   sensitive   = true
 }
 
 variable "plex_path_config" {
   default     = "/mnt/plex/config"
   description = "Filepath on NFS share for Plex config"
+}
+
+variable "plex_path_config_transmission" {
+  default     = "/mnt/plex/transmission/config"
+  description = "Filepath on the host for Transmission config storage"
 }
 
 variable "plex_path_downloads" {
@@ -161,4 +167,16 @@ variable "enable_transmission" {
   default     = false
   description = "Enable the Transmission module"
   type        = bool
+}
+
+variable "nfs_enabled" {
+  default     = false
+  description = "Enable NFS media volume mounts for radarr/sonarr. Requires NFS to be configured on the node."
+  type        = bool
+}
+
+variable "nfs_mount_point" {
+  default     = "/mnt/plex"
+  description = "NFS export path on the server (must match the exported root in /etc/exports)"
+  type        = string
 }

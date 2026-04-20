@@ -1,11 +1,13 @@
 # https://github.com/truecharts/public/blob/master/charts/stable/radarr/values.yaml
+%{ if nfs_enabled }
 persistence:
   media:
     enabled: true
     type: nfs
-    path: ${plexdir_movies}
+    path: ${nfs_mount_point}
     server: ${server_ip}
     mountPath: /media
+%{ endif }
 
 workload:
   main:
@@ -21,13 +23,13 @@ metrics:
 
 ingress:
   main:
-    ingressClassName: nginx
+    ingressClassName: traefik
     enabled: true
     integrations:
       homepage:
         enabled: ${homepage_enabled}
       traefik:
-        enabled: false
+        enabled: true
     hosts:
       - host: ${full_path}
         paths:

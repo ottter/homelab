@@ -3,11 +3,11 @@ resource "kubernetes_manifest" "certificate" {
     apiVersion = "cert-manager.io/v1"
     kind       = "Certificate"
     metadata = {
-      name      = "${kubernetes_namespace.ns.metadata[0].name}-tls"
-      namespace = kubernetes_namespace.ns.metadata[0].name
+      name      = "${kubernetes_namespace_v1.ns.metadata[0].name}-tls"
+      namespace = kubernetes_namespace_v1.ns.metadata[0].name
     }
     spec = {
-      secretName = "${kubernetes_namespace.ns.metadata[0].name}-tls"
+      secretName = "${kubernetes_namespace_v1.ns.metadata[0].name}-tls"
       issuerRef = {
         name  = "homelab-ca"
         kind  = "ClusterIssuer"

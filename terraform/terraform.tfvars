@@ -11,6 +11,7 @@ kubeconfig  = "~/.kube/config"
 # +-------------------+---------------------------+
 node_ip       = ["192.168.0.210"]
 traefik_lb_ip = "192.168.0.220" # Must match traefik_lb_ip in ansible/group_vars/all.yml
+plex_lb_ip    = "192.168.0.221" # Must match plex_lb_ip in ansible/group_vars/all.yml
 
 # Module: Discord
 enable_discord  = false
@@ -29,11 +30,14 @@ stock_watchlist = ["SPY", "NVDA", "TSM", "MSFT", "AAPL"]
 # Module: Plex
 enable_plex         = false
 plex_token          = "PLEX_TOKEN"             # https://www.plex.tv/claim/
-plex_lb_ip          = "192.168.0.221"          # Must match plex_lb_ip in ansible/group_vars/all.yml; must be within metallb_pool
 plex_path_downloads = "/mnt/plex/downloads"    # Must contain subdirectories 'complete' and 'incomplete'
 plex_path_config    = "/mnt/plex/config"       # Plex config directory
 plex_path_movies    = "/mnt/plex/media/movies" # Plex movies directory
 plex_path_tv        = "/mnt/plex/media/tv"     # Plex TV directory
+
+# NFS — set nfs_enabled = true once external drive is attached and Ansible NFS role has run
+nfs_enabled     = false
+nfs_mount_point = "/mnt/plex"
 
 # Module: Radarr
 enable_radarr = false

@@ -2,12 +2,14 @@ locals {
   bookmarks_yaml  = file("${path.module}/configs/bookmarks-tmpl.yaml")
   kubernetes_yaml = file("${path.module}/configs/kubernetes-tmpl.yaml")
   services_yaml = templatefile("${path.module}/configs/services-tmpl.yaml", {
-    domain_root   = var.domain_root
-    traefik_lb_ip = var.traefik_lb_ip
-    plex_lb_ip    = var.plex_lb_ip
-    plex_token    = var.plex_token
-    apikey_sonarr = var.apikey_sonarr
-    apikey_radarr = var.apikey_radarr
+    domain_root       = var.domain_root
+    traefik_lb_ip     = var.traefik_lb_ip
+    plex_lb_ip        = var.plex_lb_ip
+    plex_token        = var.plex_token
+    apikey_sonarr     = var.apikey_sonarr
+    apikey_radarr     = var.apikey_radarr
+    transmission_user = var.transmission_user
+    transmission_pass = var.transmission_pass
   })
   settings_yaml = templatefile("${path.module}/configs/settings-tmpl.yaml", {
     openweathermap = var.apikey_openweathermap
@@ -19,7 +21,7 @@ locals {
   })
 }
 
-resource "kubernetes_namespace" "ns" {
+resource "kubernetes_namespace_v1" "ns" {
   metadata {
     name = "homepage"
   }
@@ -28,29 +30,29 @@ resource "kubernetes_namespace" "ns" {
 # https://truecharts.org/charts/stable/homepage/
 resource "helm_release" "homepage" {
   name      = "homepage"
-  namespace = kubernetes_namespace.ns.metadata[0].name
+  namespace = kubernetes_namespace_v1.ns.metadata[0].name
 
   repository = "oci://oci.trueforge.org/truecharts"
   chart      = "homepage"
 
   values = [
     templatefile("${path.module}/values-tmpl.yaml", {
-      tls_secret = "${kubernetes_namespace.ns.metadata[0].name}-tls"
+      tls_secret = "${kubernetes_namespace_v1.ns.metadata[0].name}-tls"
       full_path  = "${var.domain_sub}.${var.domain_root}"
     })
   ]
 
   lifecycle {
     replace_triggered_by = [
-      kubernetes_config_map.homepage_config
+      kubernetes_config_map_v1.homepage_config
     ]
   }
 }
 
-resource "kubernetes_config_map" "homepage_config" {
+resource "kubernetes_config_map_v1" "homepage_config" {
   metadata {
     name      = "homepage-config"
-    namespace = kubernetes_namespace.ns.metadata[0].name
+    namespace = kubernetes_namespace_v1.ns.metadata[0].name
   }
 
   data = {

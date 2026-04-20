@@ -2,6 +2,7 @@
 persistence:
   config:
     enabled: true
+    type: hostPath
     hostPath: ${transmission_config}
     mountPath: "/config"
   downloads:
@@ -29,20 +30,17 @@ workload:
 securityContext:
   container:
     readOnlyRootFilesystem: false
-    runAsUser: 0
-    runAsGroup: 0
+    runAsNonRoot: false
 
 ingress:
   main:
-    ingressClassName: nginx
+    ingressClassName: traefik
     enabled: true
-    annotations:
-      nginx.ingress.kubernetes.io/whitelist-source-range: "127.0.0.1/24"
     integrations:
       homepage:
         enabled: ${homepage_enabled}
       traefik:
-        enabled: false
+        enabled: true
     hosts:
       - host: ${full_path}
         paths:

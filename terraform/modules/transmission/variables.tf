@@ -1,8 +1,10 @@
 variable "domain_root" {
   default = "local"
+  type    = string
 }
 variable "domain_sub" {
   default = "transmission"
+  type    = string
 }
 variable "homepage_enabled" {
   default = true
@@ -15,8 +17,10 @@ variable "transmission_config" {
   default = "/mnt/plex/transmission/config"
 }
 variable "username" {
-  default = "james"
+  type      = string
+  sensitive = true
 }
 variable "password" {
-  default = "password"
+  type      = string
+  sensitive = true
 }

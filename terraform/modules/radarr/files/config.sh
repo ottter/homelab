@@ -51,15 +51,25 @@ api_key=$(kubectl exec -n $namespace "$radarr_pod" -- \
 # Create a secret which is used by Homepage
 kubectl create secret generic homepage-api-key-radarr --from-literal=apiKey="$api_key" -n $namespace --dry-run=client -o yaml | kubectl apply -f -
 
+ca_cert=$(kubectl get secret -n cert-manager homelab-ca-secret -o jsonpath='{.data.tls\.crt}' 2>/dev/null | base64 -d)
+curl_ca_opt="--insecure"
+if [ -n "$ca_cert" ]; then
+  ca_file=$(mktemp)
+  echo "$ca_cert" > "$ca_file"
+  curl_ca_opt="--cacert $ca_file"
+fi
+
 # cURL request to add Transmission as a download client on Radarr
 curl -X POST "https://$namespace.$domain_root/api/v3/downloadclient" \
   -H "X-Api-Key: $api_key" \
   -H "Content-Type: application/json" \
   --data "$transmission_data" \
-  --insecure
+  $curl_ca_opt
 
 curl -X POST "https://$namespace.$domain_root/api/v3/remotepathmapping" \
   -H "X-Api-Key: $api_key" \
   -H "Content-Type: application/json" \
   --data "$remotepath_data" \
-  --insecure
+  $curl_ca_opt
+
+[ -n "$ca_file" ] && rm -f "$ca_file"

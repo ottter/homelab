@@ -9,7 +9,7 @@
       description: Series management
       widget:
         type: sonarr
-        url: https://sonarr.sonarr.svc.cluster.local
+        url: http://sonarr.sonarr.svc.cluster.local
         key: ${apikey_sonarr}
   - Radarr:
       icon: radarr.png
@@ -17,7 +17,7 @@
       description: Movie management
       widget:
         type: radarr
-        url: https://radarr.radarr.svc.cluster.local
+        url: http://radarr.radarr.svc.cluster.local
         key: ${apikey_radarr}
   - Transmission:
       icon: transmission.png
@@ -26,6 +26,8 @@
       widget:
         type: transmission
         url: http://transmission.transmission.svc.cluster.local:9091
+        username: ${transmission_user}
+        password: ${transmission_pass}
 
 - Media:
   - Plex:
