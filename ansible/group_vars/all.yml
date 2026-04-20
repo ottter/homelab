@@ -12,18 +12,18 @@ hostname: "minipc"
 timezone: "America/New_York"
 
 # SSH hardening
-ssh_port: 22
-ssh_allowed_users: ["{{ ansible_user }}"]
-ssh_password_auth: "no"
-ssh_permit_root_login: "no"
-ssh_max_auth_tries: 3
-ssh_client_alive_interval: 300
-ssh_client_alive_count_max: 2
+hardening_ssh_port: 22
+hardening_ssh_allowed_users: ["{{ ansible_user }}"]
+hardening_ssh_password_auth: "no"
+hardening_ssh_permit_root_login: "no"
+hardening_ssh_max_auth_tries: 3
+hardening_ssh_client_alive_interval: 300
+hardening_ssh_client_alive_count_max: 2
 
 # fail2ban
-fail2ban_maxretry: 5
-fail2ban_bantime: 3600
-fail2ban_findtime: 600
+hardening_fail2ban_maxretry: 5
+hardening_fail2ban_bantime: 3600
+hardening_fail2ban_findtime: 600
 
 # k3s
 k3s_version: "v1.35.3+k3s1"

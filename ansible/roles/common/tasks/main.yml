@@ -15,8 +15,8 @@
     name: "{{ hostname }}"
 
 - name: Set timezone
-  community.general.timezone:
-    name: "{{ timezone }}"
+  ansible.builtin.command: timedatectl set-timezone {{ timezone }}
+  changed_when: false
 
 - name: Disable swap (required for k3s)
   ansible.builtin.command: swapoff -a
