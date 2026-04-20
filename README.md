@@ -28,7 +28,7 @@ These are one-time router/network settings required before deploying.
   ```
 
 - **IP + domain consistency:** Three values must stay in sync across Ansible and Terraform:
-  - `traefik_lb_ip` — `ansible/group_vars/all.yml` and `terraform/homelab.tfvars`
+  - `networking_traefik_lb_ip` — `ansible/group_vars/all.yml` and `terraform/homelab.tfvars`
   - `plex_lb_ip` — `ansible/group_vars/all.yml` and `terraform/homelab.tfvars`
   - `domain_suffix` (Ansible) / `domain_root` (Terraform) — both default to `local`
 

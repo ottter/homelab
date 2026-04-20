@@ -9,4 +9,4 @@ bind-interfaces
 address=/plex.{{ domain_suffix }}/{{ plex_lb_ip }}
 
 # Wildcard: all other *.{{ domain_suffix }} -> Traefik LoadBalancer
-address=/.{{ domain_suffix }}/{{ traefik_lb_ip }}
+address=/.{{ domain_suffix }}/{{ networking_traefik_lb_ip }}

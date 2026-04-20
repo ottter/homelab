@@ -1,10 +1,10 @@
 ---
 # Fallback defaults — set nfs_enabled and paths in group_vars/all.yml.
-nfs_enabled:     false
-nfs_device:      "/dev/sdb1"
+nfs_enabled: false
+nfs_device: "/dev/sdb1"
 nfs_mount_point: "/mnt/plex"
-nfs_fs_type:     "xfs"
-nfs_owner_uid:   1000
+nfs_fs_type: "xfs"
+nfs_owner_uid: 1000
 nfs_directories:
   - downloads/incomplete
   - downloads/complete

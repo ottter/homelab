@@ -1,7 +1,7 @@
 ---
 - name: Check if Helm is installed
   ansible.builtin.command: helm version --short
-  register: helm_check
+  register: networking_helm_check
   changed_when: false
   failed_when: false
 
@@ -10,7 +10,7 @@
 - name: Install Helm
   ansible.builtin.shell: |
     curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-  when: helm_check.rc != 0
+  when: networking_helm_check.rc != 0
   changed_when: true
 
 - name: Create metallb-system namespace with PSA exemption
@@ -29,8 +29,8 @@
     executable: /bin/bash
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: result
-  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+  register: networking_result
+  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
 
 - name: Create cert-manager namespace with PSA exemption
   ansible.builtin.shell:
@@ -48,8 +48,8 @@
     executable: /bin/bash
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: result
-  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+  register: networking_result
+  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
 
 - name: Create traefik namespace with PSA exemption
   ansible.builtin.shell:
@@ -67,23 +67,23 @@
     executable: /bin/bash
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: result
-  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+  register: networking_result
+  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
 
 - name: Add MetalLB Helm repo
   ansible.builtin.command: helm repo add metallb https://metallb.github.io/metallb
-  register: result
-  changed_when: "'already exists' not in result.stdout"
+  register: networking_result
+  changed_when: "'already exists' not in networking_result.stdout"
 
 - name: Add Traefik Helm repo
   ansible.builtin.command: helm repo add traefik https://traefik.github.io/charts
-  register: result
-  changed_when: "'already exists' not in result.stdout"
+  register: networking_result
+  changed_when: "'already exists' not in networking_result.stdout"
 
 - name: Add cert-manager Helm repo
   ansible.builtin.command: helm repo add jetstack https://charts.jetstack.io
-  register: result
-  changed_when: "'already exists' not in result.stdout"
+  register: networking_result
+  changed_when: "'already exists' not in networking_result.stdout"
 
 - name: Update Helm repos
   ansible.builtin.command: helm repo update
@@ -94,13 +94,13 @@
     helm upgrade --install metallb metallb/metallb
     --namespace metallb-system
     --create-namespace
-    --version {{ metallb_version }}
+    --version {{ networking_metallb_version }}
     --wait --timeout 120s
     --set speaker.frr.enabled=false
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: result
-  changed_when: "'has been upgraded' in result.stdout or 'has been deployed' in result.stdout"
+  register: networking_result
+  changed_when: "'has been upgraded' in networking_result.stdout or 'has been deployed' in networking_result.stdout"
 
 - name: Wait for MetalLB controller to be ready
   ansible.builtin.command: >
@@ -124,7 +124,7 @@
         namespace: metallb-system
       spec:
         addresses:
-        - {{ metallb_pool }}
+        - {{ networking_metallb_pool }}
       ---
       apiVersion: metallb.io/v1beta1
       kind: L2Advertisement
@@ -138,26 +138,26 @@
     executable: /bin/bash
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: result
-  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+  register: networking_result
+  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
 
 - name: Install Traefik via Helm
   ansible.builtin.command: >
     helm upgrade --install traefik traefik/traefik
     --namespace traefik
     --create-namespace
-    --version {{ traefik_version }}
+    --version {{ networking_traefik_version }}
     --wait --timeout 120s
     --set "globalArguments={--global.sendAnonymousUsage=false}"
     --set service.type=LoadBalancer
-    --set "service.annotations.metallb\.universe\.tf/loadBalancerIPs={{ traefik_lb_ip }}"
+    --set "service.annotations.metallb\.universe\.tf/loadBalancerIPs={{ networking_traefik_lb_ip }}"
     --set ports.web.redirections.entryPoint.to=websecure
     --set ports.web.redirections.entryPoint.scheme=https
     --set ports.websecure.tls.enabled=true
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: result
-  changed_when: "'has been upgraded' in result.stdout or 'has been deployed' in result.stdout"
+  register: networking_result
+  changed_when: "'has been upgraded' in networking_result.stdout or 'has been deployed' in networking_result.stdout"
 
 - name: Apply Traefik LAN-only Middleware
   ansible.builtin.shell:
@@ -178,21 +178,21 @@
     executable: /bin/bash
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: result
-  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+  register: networking_result
+  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
 
 - name: Install cert-manager via Helm
   ansible.builtin.command: >
     helm upgrade --install cert-manager jetstack/cert-manager
     --namespace cert-manager
     --create-namespace
-    --version {{ certmanager_version }}
+    --version {{ networking_certmanager_version }}
     --set crds.enabled=true
     --wait --timeout 120s
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: result
-  changed_when: "'has been upgraded' in result.stdout or 'has been deployed' in result.stdout"
+  register: networking_result
+  changed_when: "'has been upgraded' in networking_result.stdout or 'has been deployed' in networking_result.stdout"
 
 - name: Apply homelab CA ClusterIssuer
   ansible.builtin.shell:
@@ -233,8 +233,8 @@
     executable: /bin/bash
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: result
-  changed_when: "'configured' in result.stdout or 'created' in result.stdout"
+  register: networking_result
+  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
 
 - name: Wait for homelab CA certificate to be ready
   ansible.builtin.command: >
@@ -251,12 +251,12 @@
     kubectl get secret homelab-ca-secret -n cert-manager -o jsonpath='{.data.tls\.crt}' | base64 -d
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: homelab_ca_cert
+  register: networking_ca_cert
   changed_when: false
 
 - name: Write CA cert to /etc/homelab-ca.crt
   ansible.builtin.copy:
-    content: "{{ homelab_ca_cert.stdout }}"
+    content: "{{ networking_ca_cert.stdout }}"
     dest: /etc/homelab-ca.crt
     owner: root
     group: root
