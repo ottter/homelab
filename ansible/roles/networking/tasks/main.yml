@@ -7,9 +7,15 @@
 
 # Installs Helm via the official script. The script itself verifies the binary
 # with a sha256 checksum before installing.
+- name: Download Helm install script
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    dest: /tmp/get-helm-3.sh
+    mode: "0700"
+  when: networking_helm_check.rc != 0
+
 - name: Install Helm
-  ansible.builtin.shell: |
-    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  ansible.builtin.command: /tmp/get-helm-3.sh
   when: networking_helm_check.rc != 0
   changed_when: true
 
@@ -247,8 +253,11 @@
   changed_when: false
 
 - name: Export homelab CA certificate for browser trust
-  ansible.builtin.shell: |
-    kubectl get secret homelab-ca-secret -n cert-manager -o jsonpath='{.data.tls\.crt}' | base64 -d
+  ansible.builtin.shell:
+    cmd: |
+      set -o pipefail
+      kubectl get secret homelab-ca-secret -n cert-manager -o jsonpath='{.data.tls\.crt}' | base64 -d
+    executable: /bin/bash
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   register: networking_ca_cert

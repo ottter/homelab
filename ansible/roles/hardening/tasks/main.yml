@@ -11,10 +11,12 @@
     mode: "0700"
 
 - name: Copy local SSH public key to authorized_keys
-  ansible.posix.authorized_key:
-    user: "{{ ansible_user }}"
-    state: present
-    key: "{{ lookup('file', ansible_ssh_private_key_file ~ '.pub') }}"
+  ansible.builtin.copy:
+    content: "{{ lookup('file', ansible_ssh_private_key_file ~ '.pub') }}\n"
+    dest: "/home/{{ ansible_user }}/.ssh/authorized_keys"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0600"
 
 # Step 2: UFW firewall
 - name: Set UFW default policies
