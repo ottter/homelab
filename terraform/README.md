@@ -105,19 +105,34 @@ kubectl rollout restart deployment discord-bot
 
 ### Radarr
 
+Accessible at `https://radarr.{domain_root}`
+
 - Movie management for Plex using torrents or Usenet.
 - Connects to Plex and Transmission.
 
 ### Sonarr
+
+Accessible at `https://sonarr.{domain_root}`
 
 - TV show management, similar to Radarr.
 - Connects to Plex and Transmission.
 
 ### Homepage
 
+Accessible at `https://homepage.{domain_root}`
+
 - Dashboard for managing all services.
 - Displays app links, system stats, and service health.
 
 ### Transmission
 
+Accessible at `https://transmission.{domain_root}`
+
 - Torrent client used by Radarr/Sonarr.
+
+### Yamtrack
+
+Accessible at `https://yam.{domain_root}`
+
+- Self-hosted media tracker for movies, TV, anime, games, books, and more.
+- User data (watchlist, ratings) is stored in SQLite at the hostPath `/mnt/yamtrack/db`.

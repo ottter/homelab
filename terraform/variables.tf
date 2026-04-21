@@ -169,6 +169,18 @@ variable "enable_transmission" {
   type        = bool
 }
 
+variable "enable_yamtrack" {
+  default     = false
+  type        = bool
+  description = "Enable the Yamtrack module"
+}
+
+variable "yamtrack_path_db" {
+  default     = "/mnt/yamtrack/db"
+  type        = string
+  description = "hostPath on the node for Yamtrack database storage"
+}
+
 variable "nfs_enabled" {
   default     = false
   description = "Enable NFS media volume mounts for radarr/sonarr. Requires NFS to be configured on the node."

@@ -42,11 +42,6 @@ resource "helm_release" "homepage" {
     })
   ]
 
-  lifecycle {
-    replace_triggered_by = [
-      kubernetes_config_map_v1.homepage_config
-    ]
-  }
 }
 
 resource "kubernetes_config_map_v1" "homepage_config" {

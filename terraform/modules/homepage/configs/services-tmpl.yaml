@@ -29,6 +29,12 @@
         username: ${transmission_user}
         password: ${transmission_pass}
 
+- Tracking:
+  - Yamtrack:
+      icon: yamtrack.png
+      href: https://yam.${domain_root}/
+      description: Media tracker
+
 - Media:
   - Plex:
       icon: plex.png
