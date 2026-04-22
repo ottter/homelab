@@ -36,6 +36,10 @@
       description: Media tracker
 
 - Media:
+  - Overseerr:
+      icon: overseerr.png
+      href: https://overseerr.${domain_root}/
+      description: Plex request management
   - Plex:
       icon: plex.png
       href: http://plex.${domain_root}:32400/web/

@@ -5,19 +5,13 @@ variable "domain_root" {
 }
 
 variable "domain_sub" {
-  default     = "yam"
+  default     = "overseerr"
   type        = string
-  description = "Subdomain for Yamtrack"
+  description = "Subdomain for Overseerr"
 }
 
 variable "homepage_enabled" {
   default     = true
   type        = bool
   description = "Enable Homepage integration"
-}
-
-variable "yamtrack_path_db" {
-  default     = "/mnt/yamtrack/db"
-  type        = string
-  description = "hostPath on the node for Yamtrack database storage"
 }

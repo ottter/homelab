@@ -39,6 +39,9 @@ plex_path_tv        = "/mnt/plex/media/tv"     # Plex TV directory
 nfs_enabled     = false
 nfs_mount_point = "/mnt/plex"
 
+# Module: Overseerr
+enable_overseerr = false
+
 # Module: Radarr
 enable_radarr = false
 

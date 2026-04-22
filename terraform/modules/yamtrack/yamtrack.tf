@@ -52,7 +52,7 @@ resource "kubernetes_deployment_v1" "yamtrack" {
           }
           env {
             name  = "TZ"
-            value = var.tz
+            value = "America/New_York"
           }
           env {
             name  = "URLS"

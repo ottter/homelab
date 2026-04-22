@@ -63,6 +63,13 @@ module "sonarr" {
   depends_on           = [module.transmission]
 }
 
+module "overseerr" {
+  source           = "./modules/overseerr"
+  count            = var.enable_overseerr ? 1 : 0
+  domain_root      = var.domain_root
+  homepage_enabled = var.enable_homepage
+}
+
 module "yamtrack" {
   source           = "./modules/yamtrack"
   count            = var.enable_yamtrack ? 1 : 0

@@ -169,6 +169,12 @@ variable "enable_transmission" {
   type        = bool
 }
 
+variable "enable_overseerr" {
+  default     = false
+  type        = bool
+  description = "Enable the Overseerr module"
+}
+
 variable "enable_yamtrack" {
   default     = false
   type        = bool

@@ -1,0 +1,22 @@
+metrics:
+  main:
+    enabled: false
+
+ingress:
+  main:
+    ingressClassName: traefik
+    enabled: true
+    integrations:
+      homepage:
+        enabled: ${homepage_enabled}
+      traefik:
+        enabled: true
+    hosts:
+      - host: ${full_path}
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - ${full_path}
+        secretName: ${tls_secret}
