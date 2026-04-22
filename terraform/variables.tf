@@ -83,6 +83,13 @@ variable "apikey_weatherapi" {
   sensitive   = true
 }
 
+variable "apikey_overseerr" {
+  default     = ""
+  type        = string
+  sensitive   = true
+  description = "API Key from Overseerr (Settings -> General -> API Key)"
+}
+
 variable "plex_token" {
   default     = "apikey"
   description = "Create a Plex account and get a token from https://www.plex.tv/claim/"

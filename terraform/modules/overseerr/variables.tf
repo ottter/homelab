@@ -10,6 +10,12 @@ variable "domain_sub" {
   description = "Subdomain for Overseerr"
 }
 
+variable "tz" {
+  default     = "America/New_York"
+  type        = string
+  description = "Timezone for the Overseerr container"
+}
+
 variable "homepage_enabled" {
   default     = true
   type        = bool

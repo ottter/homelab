@@ -124,6 +124,12 @@ Accessible at `https://homepage.{domain_root}`
 - Dashboard for managing all services.
 - Displays app links, system stats, and service health.
 
+### Overseerr
+
+Accessible at `https://overseerr.{domain_root}`
+
+- A request management and media discovery tool built to work with your existing Plex ecosystem.
+
 ### Transmission
 
 Accessible at `https://transmission.{domain_root}`

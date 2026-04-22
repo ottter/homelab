@@ -29,6 +29,13 @@ variable "apikey_radarr" {
   sensitive   = true
 }
 
+variable "apikey_overseerr" {
+  default     = ""
+  description = "API Key from Overseerr (Settings -> General -> API Key)"
+  type        = string
+  sensitive   = true
+}
+
 variable "apikey_openweathermap" {
   default     = ""
   description = "API key from https://openweathermap.org/"

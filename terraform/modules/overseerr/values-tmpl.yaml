@@ -1,3 +1,15 @@
+global:
+  stopAll: false
+  timezone: ${tz}
+
+workload:
+  main:
+    podSpec:
+      containers:
+        main:
+          env:
+            LOG_LEVEL: warn
+
 metrics:
   main:
     enabled: false

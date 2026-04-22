@@ -19,6 +19,7 @@ module "homepage" {
   apikey_weatherapi     = var.apikey_weatherapi
   apikey_radarr         = var.enable_radarr ? module.radarr[0].radarr_api_key : ""
   apikey_sonarr         = var.enable_sonarr ? module.sonarr[0].sonarr_api_key : ""
+  apikey_overseerr      = var.enable_overseerr ? var.apikey_overseerr : ""
   transmission_user     = var.enable_transmission ? var.transmission_user : ""
   transmission_pass     = var.enable_transmission ? var.transmission_pass : ""
 }

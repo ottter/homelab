@@ -33,6 +33,8 @@ k3s_force_reinstall: false
 networking_metallb_version: "0.14.9"
 networking_traefik_version: "35.2.0"
 networking_certmanager_version: "v1.17.2"
+# networking_letsencrypt_email: ""            # Required for Let's Encrypt ClusterIssuer
+# networking_letsencrypt_cloudflare_token: "" # Cloudflare API token: Zone:DNS:Edit on website.dev
 
 # NFS (disabled until external drive is attached — set nfs_enabled: true to activate)
 nfs_enabled: false

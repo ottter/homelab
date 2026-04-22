@@ -40,6 +40,10 @@
       icon: overseerr.png
       href: https://overseerr.${domain_root}/
       description: Plex request management
+      widget:
+        type: overseerr
+        url: http://overseerr.overseerr.svc.cluster.local:5055
+        key: ${apikey_overseerr}
   - Plex:
       icon: plex.png
       href: http://plex.${domain_root}:32400/web/

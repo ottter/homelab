@@ -8,6 +8,7 @@ locals {
     plex_token        = var.plex_token
     apikey_sonarr     = var.apikey_sonarr
     apikey_radarr     = var.apikey_radarr
+    apikey_overseerr  = var.apikey_overseerr
     transmission_user = var.transmission_user
     transmission_pass = var.transmission_pass
   })

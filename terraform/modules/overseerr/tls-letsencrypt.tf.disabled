@@ -1,0 +1,29 @@
+# Let's Encrypt TLS for overseerr.website.dev
+#
+# Prerequisites before enabling:
+#   1. Uncomment and run the Let's Encrypt tasks in ansible/roles/networking/tasks/main.yml
+#   2. Set domain_root = "website.dev" and domain_sub = "overseerr" in tfvars
+#   3. Rename this file to tls-letsencrypt.tf and delete tls.tf
+#
+# The letsencrypt-prod ClusterIssuer and Cloudflare secret are managed by Ansible,
+# not Terraform, since they are cluster-level resources shared across namespaces.
+
+resource "kubernetes_manifest" "certificate" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = "${kubernetes_namespace_v1.ns.metadata[0].name}-tls"
+      namespace = kubernetes_namespace_v1.ns.metadata[0].name
+    }
+    spec = {
+      secretName = "${kubernetes_namespace_v1.ns.metadata[0].name}-tls"
+      issuerRef = {
+        name  = "letsencrypt-prod"
+        kind  = "ClusterIssuer"
+        group = "cert-manager.io"
+      }
+      dnsNames = ["${var.domain_sub}.${var.domain_root}"]
+    }
+  }
+}

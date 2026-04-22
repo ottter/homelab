@@ -17,6 +17,7 @@ resource "helm_release" "overseerr" {
       tls_secret       = "${kubernetes_namespace_v1.ns.metadata[0].name}-tls"
       full_path        = "${var.domain_sub}.${var.domain_root}"
       homepage_enabled = var.homepage_enabled
+      tz               = var.tz
     })
   ]
 }
