@@ -189,7 +189,7 @@ variable "enable_yamtrack" {
 }
 
 variable "yamtrack_path_db" {
-  default     = "/mnt/yamtrack/db"
+  default     = "/var/lib/yamtrack/db"
   type        = string
   description = "hostPath on the node for Yamtrack database storage"
 }

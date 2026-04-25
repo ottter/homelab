@@ -1,9 +1,9 @@
-resource "kubernetes_service" "plex" {
+resource "kubernetes_service_v1" "plex" {
   metadata {
     name      = "plex-service"
-    namespace = kubernetes_namespace.ns.metadata[0].name
+    namespace = kubernetes_namespace_v1.ns.metadata[0].name
     annotations = {
-      "kubernetes.io/ingress.class" : "nginx"
+      "metallb.universe.tf/loadBalancerIPs" = var.plex_lb_ip
     }
   }
 
@@ -13,12 +13,11 @@ resource "kubernetes_service" "plex" {
     }
 
     port {
-      name        = "http"
+      name        = "plex"
       port        = 32400
       target_port = 32400
-      node_port   = 32000
     }
 
-    type = "NodePort"
+    type = "LoadBalancer"
   }
 }

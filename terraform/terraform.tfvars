@@ -54,4 +54,4 @@ transmission_user   = "TRANSMISSION_USER"
 transmission_pass   = "TRANSMISSION_PASS"
 
 # Module: Yamtrack
-enable_yamtrack = true
+enable_yamtrack = false

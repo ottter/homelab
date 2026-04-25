@@ -1,42 +1,41 @@
-<!-- BEGIN_TF_DOCS -->
-## Requirements
+# Plex
 
-No requirements.
+Deploys Plex Media Server using the [linuxserver/plex](https://hub.docker.com/r/linuxserver/plex) image. Exposed directly via a dedicated MetalLB LoadBalancer IP — bypasses Traefik entirely.
 
-## Providers
+## Access
 
-| Name | Version |
-|------|---------|
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | n/a |
-| <a name="provider_tls"></a> [tls](#provider\_tls) | n/a |
+```txt
+http://plex.{domain_root}:32400/web/
+```
 
-## Modules
+e.g. `http://plex.local:32400/web/`
 
-No modules.
+Plex does not go through Traefik and has no TLS certificate. Use Plex's built-in remote access for external connections.
 
-## Resources
+## Variables
 
-| Name | Type |
-|------|------|
-| [kubernetes_deployment.plex](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment) | resource |
-| [kubernetes_namespace.ns](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
-| [kubernetes_secret.tls](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
-| [kubernetes_service.plex](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/service) | resource |
-| [tls_private_key.service_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
-| [tls_self_signed_cert.service_cert](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/self_signed_cert) | resource |
+| Variable | Description | Default |
+| --- | --- | --- |
+| `plex_token` | Claim token from <https://plex.tv/claim> — used once on first setup, expires in 4 minutes | required |
+| `plex_lb_ip` | MetalLB LoadBalancer IP for the Plex service | required |
+| `plex_path_config` | hostPath on the node for Plex config and database | `/mnt/plex/config` |
+| `plex_path_tv` | hostPath on the node for TV series | `/mnt/plex/tv` |
+| `plex_path_movies` | hostPath on the node for movies | `/mnt/plex/movies` |
 
-## Inputs
+## Host Directory Setup
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_domain_root"></a> [domain\_root](#input\_domain\_root) | n/a | `any` | n/a | yes |
-| <a name="input_plex_path_config"></a> [plex\_path\_config](#input\_plex\_path\_config) | n/a | `any` | n/a | yes |
-| <a name="input_plex_path_movies"></a> [plex\_path\_movies](#input\_plex\_path\_movies) | n/a | `any` | n/a | yes |
-| <a name="input_plex_path_tv"></a> [plex\_path\_tv](#input\_plex\_path\_tv) | n/a | `any` | n/a | yes |
-| <a name="input_plex_token"></a> [plex\_token](#input\_plex\_token) | n/a | `any` | n/a | yes |
-| <a name="input_server_ip"></a> [server\_ip](#input\_server\_ip) | n/a | `any` | n/a | yes |
+The three hostPath directories must exist on the node before deploying, owned by UID/GID 1000:
 
-## Outputs
+```sh
+ssh james@lab sudo mkdir -p /mnt/plex/{config,tv,movies}
+sudo chown -R 1000:1000 /mnt/plex
+```
 
-No outputs.
-<!-- END_TF_DOCS -->
+This is handled automatically by Ansible (`tasks/nfs.yml`) if NFS is configured.
+
+## Notes
+
+- `PUID`/`PGID` are hardcoded to `1000` — the host directories must be owned by this user
+- `PLEX_CLAIM` is only used on first boot to link the server to your Plex account; it is ignored on subsequent starts
+- The liveness probe checks `/health` on port 32400 starting 60 seconds after pod start
+- To force a pod restart (e.g. after a config change): `kubectl rollout restart deployment plex -n plex`

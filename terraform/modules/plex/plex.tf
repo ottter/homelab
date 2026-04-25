@@ -1,16 +1,16 @@
-resource "kubernetes_namespace" "ns" {
+resource "kubernetes_namespace_v1" "ns" {
   metadata {
-    labels = {
-      istio-injection = "enabled"
-    }
     name = "plex"
+    labels = {
+      "pod-security.kubernetes.io/enforce" = "privileged"
+    }
   }
 }
 
-resource "kubernetes_deployment" "plex" {
+resource "kubernetes_deployment_v1" "plex" {
   metadata {
     name      = "plex"
-    namespace = kubernetes_namespace.ns.metadata[0].name
+    namespace = kubernetes_namespace_v1.ns.metadata[0].name
   }
 
   spec {
@@ -43,7 +43,7 @@ resource "kubernetes_deployment" "plex" {
           }
           env {
             name  = "TZ"
-            value = "Etc/UTC"
+            value = "America/New_York"
           }
           env {
             name  = "VERSION"
@@ -65,24 +65,37 @@ resource "kubernetes_deployment" "plex" {
             name       = "movies"
             mount_path = "/movies"
           }
+
+          liveness_probe {
+            http_get {
+              path = "/health"
+              port = 32400
+            }
+            initial_delay_seconds = 60
+            period_seconds        = 30
+            failure_threshold     = 3
+          }
         }
 
         volume {
           name = "plex-config"
           host_path {
             path = var.plex_path_config
+            type = "Directory"
           }
         }
         volume {
           name = "tv-series"
           host_path {
             path = var.plex_path_tv
+            type = "Directory"
           }
         }
         volume {
           name = "movies"
           host_path {
             path = var.plex_path_movies
+            type = "Directory"
           }
         }
       }

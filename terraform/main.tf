@@ -27,8 +27,6 @@ module "homepage" {
 module "plex" {
   source           = "./modules/plex"
   count            = var.enable_plex ? 1 : 0
-  domain_root      = var.domain_root
-  server_ip        = element(var.node_ip, 0)
   plex_token       = var.plex_token
   plex_path_config = var.plex_path_config
   plex_path_tv     = var.plex_path_tv
