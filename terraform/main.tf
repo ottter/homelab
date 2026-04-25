@@ -1,7 +1,9 @@
 module "discord" {
   source          = "./modules/discord"
   count           = var.enable_discord ? 1 : 0
+  bot_name        = var.bot_name
   discord_image   = var.discord_image
+  discord_token   = var.discord_token
   github_username = var.github_username
   github_pat      = var.github_pat
 }

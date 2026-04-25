@@ -46,6 +46,13 @@ variable "domain_root" {
   description = "Root domain name for the environment. (.local; homelab.local)"
 }
 
+variable "discord_token" {
+  default     = ""
+  type        = string
+  sensitive   = true
+  description = "Discord bot token from https://discord.com/developers/applications"
+}
+
 variable "discord_image" {
   default     = ""
   description = "Docker image to deploy for the Discord bot (e.g. ghcr.io/user/repo:tag)"
@@ -138,6 +145,12 @@ variable "transmission_pass" {
   description = "Basic Auth password to access Transmission. Can be disabled in values.yaml"
   type        = string
   sensitive   = true
+}
+
+variable "bot_name" {
+  default     = "discord"
+  type        = string
+  description = "Name for the Discord bot deployment (namespace, deployment, secrets)"
 }
 
 variable "enable_discord" {

@@ -66,13 +66,15 @@ minutes so make it quick.
 
 ```sh
 /mnt/plex/
-├── downloads/         # Transmission temp storage
+├── downloads/          # Transmission temp storage
 │   ├── incomplete/
 │   └── complete/
 ├── media/
-│   ├── movies/        # Radarr
-│   └── tv/            # Sonarr
-├── config/
+│   ├── movies/         # Radarr + Plex (plex_path_movies)
+│   └── tv/             # Sonarr + Plex (plex_path_tv)
+├── config/             # Plex config (plex_path_config)
+└── transmission/
+    └── config/         # Transmission config
 ```
 
 ```sh
@@ -80,7 +82,7 @@ minutes so make it quick.
 sudo chown -R 1000:1000 /mnt/plex
 sudo chmod -R 7555 /mnt/plex
 cd /mnt/plex
-mkdir -p {downloads/{incomplete,complete},media/{movies,tv},config}
+mkdir -p {downloads/{incomplete,complete},media/{movies,tv},config,transmission/config}
 ```
 
 Access Plex by going to `http://plex.{domain_root}:32400/web/` (e.g. `http://plex.local:32400/web/`)
@@ -98,9 +100,11 @@ rsync -av --progress "Ghost In The Shell 1995.mp4" james@lab:/mnt/plex/movies/
 
 ### Discord-bot
 
+No ingress — connects outbound to Discord's API only. Requires `discord_token` in tfvars (bot token from <https://discord.com/developers/applications>) and a GHCR fine-grained PAT with `read:packages` scope.
+
 ```sh
-# force k3s to pull the latest image and redeploy the pod
-kubectl rollout restart deployment discord-bot
+# force a redeploy after pushing a new image to the same tag
+kubectl rollout restart deployment discord-bot -n discord
 ```
 
 ### Radarr
@@ -141,4 +145,4 @@ Accessible at `https://transmission.{domain_root}`
 Accessible at `https://yam.{domain_root}`
 
 - Self-hosted media tracker for movies, TV, anime, games, books, and more.
-- User data (watchlist, ratings) is stored in SQLite at the hostPath `/mnt/yamtrack/db`.
+- User data (watchlist, ratings) is stored in SQLite at the hostPath `/var/lib/yamtrack/db`.

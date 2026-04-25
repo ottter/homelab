@@ -15,6 +15,7 @@ plex_lb_ip    = "192.168.0.221" # Must match plex_lb_ip in ansible/group_vars/al
 
 # Module: Discord
 enable_discord  = false
+discord_token   = "DISCORD_BOT_TOKEN" # https://discord.com/developers/applications
 github_username = "GITHUB_USERNAME"
 github_pat      = "GITHUB_PAT"
 discord_image   = "GITHUB_CONTAINER_REGISTRY_IMAGE"

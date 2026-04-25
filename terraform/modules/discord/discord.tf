@@ -1,19 +1,15 @@
-resource "kubernetes_namespace" "ns" {
+resource "kubernetes_namespace_v1" "ns" {
   metadata {
-    labels = {
-      istio-injection = "enabled"
-    }
-    name = "discord"
+    name = var.bot_name
   }
 }
 
-
-resource "kubernetes_deployment" "discord_bot" {
+resource "kubernetes_deployment_v1" "discord_bot" {
   metadata {
-    name      = "discord-bot"
-    namespace = kubernetes_namespace.ns.metadata[0].name
+    name      = var.bot_name
+    namespace = kubernetes_namespace_v1.ns.metadata[0].name
     labels = {
-      app = "discord-bot"
+      app = var.bot_name
     }
   }
 
@@ -22,57 +18,57 @@ resource "kubernetes_deployment" "discord_bot" {
 
     selector {
       match_labels = {
-        app = "discord-bot"
+        app = var.bot_name
       }
     }
 
     template {
       metadata {
         labels = {
-          app = "discord-bot"
+          app = var.bot_name
         }
       }
 
       spec {
         container {
-          name              = "discord-bot"
+          name              = var.bot_name
           image             = var.discord_image
-          image_pull_policy = "Always"
+          image_pull_policy = "IfNotPresent"
 
-          # env {
-          #   name = "DISCORD_TOKEN"
-          #   value_from {
-          #     secret_key_ref {
-          #       name = kubernetes_secret.discord_bot_secret.metadata[0].name
-          #       key  = "discord_token"
-          #     }
-          #   }
-          # }
+          env {
+            name = "DISCORD_TOKEN"
+            value_from {
+              secret_key_ref {
+                name = kubernetes_secret_v1.discord_bot_secret.metadata[0].name
+                key  = "discord_token"
+              }
+            }
+          }
         }
 
         image_pull_secrets {
-          name = kubernetes_secret.ghcr_secret.metadata[0].name
+          name = kubernetes_secret_v1.ghcr_secret.metadata[0].name
         }
       }
     }
   }
 }
 
-# resource "kubernetes_secret" "discord_bot_secret" {
-#   metadata {
-#     name      = "discord-bot-secrets"
-#     namespace = kubernetes_namespace.ns.metadata[0].name
-#   }
-
-#   data = {
-#     discord_token = base64encode(var.discord_token)
-#   }
-# }
-
-resource "kubernetes_secret" "ghcr_secret" {
+resource "kubernetes_secret_v1" "discord_bot_secret" {
   metadata {
-    name      = "ghcr-secret"
-    namespace = kubernetes_namespace.ns.metadata[0].name
+    name      = "${var.bot_name}-secrets"
+    namespace = kubernetes_namespace_v1.ns.metadata[0].name
+  }
+
+  data = {
+    discord_token = var.discord_token
+  }
+}
+
+resource "kubernetes_secret_v1" "ghcr_secret" {
+  metadata {
+    name      = "${var.bot_name}-ghcr"
+    namespace = kubernetes_namespace_v1.ns.metadata[0].name
   }
 
   type = "kubernetes.io/dockerconfigjson"

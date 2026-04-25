@@ -1,35 +1,30 @@
-<!-- BEGIN_TF_DOCS -->
-## Requirements
+# Discord Bot
 
-No requirements.
+Deploys a Discord bot from a private GHCR image. No ingress or service — the bot connects outbound to Discord's API only.
 
-## Providers
+## Variables
 
-| Name | Version |
-|------|---------|
-| <a name="provider_kubernetes"></a> [kubernetes](#provider\_kubernetes) | n/a |
+| Variable | Description |
+| --- | --- |
+| `bot_name` | Name used for the namespace, deployment, and secrets (default: `discord`) |
+| `discord_image` | Full image reference, e.g. `ghcr.io/user/repo:tag` |
+| `discord_token` | Bot token from <https://discord.com/developers/applications> |
+| `github_username` | GitHub username for GHCR image pull |
+| `github_pat` | GitHub fine-grained token with `read:packages` on the bot repo only |
 
-## Modules
+## GitHub PAT Setup
 
-No modules.
+Use a fine-grained token scoped as tightly as possible:
 
-## Resources
+1. Go to `github.com` → Settings → Developer Settings → Personal access tokens → Fine-grained tokens
+2. Set repository access to the specific bot repo only
+3. Under Permissions → Repository permissions → set **Packages** to `Read-only`
+4. No other permissions needed
 
-| Name | Type |
-|------|------|
-| [kubernetes_deployment.discord_bot](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/deployment) | resource |
-| [kubernetes_namespace.ns](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
-| [kubernetes_secret.ghcr_secret](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
+## Redeploying with a new image
 
-## Inputs
+`IfNotPresent` is set on the image pull policy — Kubernetes will not pull a new image unless the tag changes or the pod is on a new node. To force a redeploy after pushing a new image to the same tag:
 
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| <a name="input_discord_image"></a> [discord\_image](#input\_discord\_image) | n/a | `any` | n/a | yes |
-| <a name="input_github_pat"></a> [github\_pat](#input\_github\_pat) | n/a | `any` | n/a | yes |
-| <a name="input_github_username"></a> [github\_username](#input\_github\_username) | variable "discord\_token" {} | `any` | n/a | yes |
-
-## Outputs
-
-No outputs.
-<!-- END_TF_DOCS -->
+```sh
+kubectl rollout restart deployment discord-bot -n discord
+```
