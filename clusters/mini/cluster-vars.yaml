@@ -3,6 +3,7 @@
 # via postBuild.substituteFrom. Replaces Terraform's var/templatefile pattern:
 # write ${domain_root} in any manifest and Flux fills it in.
 #
+# Secrets do NOT belong here — those live in apps/mini/secrets.enc.yaml (SOPS).
 # Must stay in sync with ansible/group_vars/all.yml.
 apiVersion: v1
 kind: ConfigMap
@@ -10,10 +11,22 @@ metadata:
   name: cluster-vars
   namespace: flux-system
 data:
+  # --- Network ---------------------------------------------------------------
   domain_root: "local"
   timezone: "America/New_York"
   server_ip: "192.168.0.210"
   traefik_lb_ip: "192.168.0.220"
   plex_lb_ip: "192.168.0.221"
   metallb_pool: "192.168.0.220-192.168.0.230"
+
+  # --- Storage ---------------------------------------------------------------
   nfs_mount_point: "/mnt/plex"
+  plex_path_config: "/mnt/plex/config"
+  plex_path_movies: "/mnt/plex/media/movies"
+  plex_path_tv: "/mnt/plex/media/tv"
+  plex_path_downloads: "/mnt/plex/downloads"
+  transmission_path_config: "/mnt/plex/transmission/config"
+  yamtrack_path_db: "/var/lib/yamtrack/db"
+
+  # --- Images ----------------------------------------------------------------
+  discord_image: "ghcr.io/ottter/discord-bot:latest"

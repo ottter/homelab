@@ -1,0 +1,15 @@
+---
+# Signed by the homelab CA (infrastructure/configs/cluster-issuer.yaml).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: transmission-tls
+  namespace: transmission
+spec:
+  secretName: transmission-tls
+  issuerRef:
+    name: homelab-ca
+    kind: ClusterIssuer
+    group: cert-manager.io
+  dnsNames:
+    - "transmission.${domain_root}"

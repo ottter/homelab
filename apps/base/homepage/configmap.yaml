@@ -1,0 +1,93 @@
+---
+# Homepage config, ported from terraform/modules/homepage/configs/.
+#
+# Terraform baked API keys straight into these files via templatefile(). Here
+# they stay as {{HOMEPAGE_VAR_*}} placeholders that Homepage resolves at runtime
+# from the env vars in homepage-secrets — so no secret is ever written to git.
+#
+# ${domain_root} and ${plex_lb_ip} are Flux substitutions (non-secret).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-config
+  namespace: homepage
+data:
+  settings.yaml: |
+    providers:
+      finnhub: "{{HOMEPAGE_VAR_FINNHUB}}"
+      openweathermap: "{{HOMEPAGE_VAR_OPENWEATHERMAP}}"
+      weatherapi: "{{HOMEPAGE_VAR_WEATHERAPI}}"
+
+  services.yaml: |
+    - Arr:
+      - Sonarr:
+          icon: sonarr.png
+          href: https://sonarr.${domain_root}/
+          description: Series management
+          widget:
+            type: sonarr
+            url: http://sonarr.sonarr.svc.cluster.local
+            key: "{{HOMEPAGE_VAR_SONARR_KEY}}"
+      - Radarr:
+          icon: radarr.png
+          href: https://radarr.${domain_root}/
+          description: Movie management
+          widget:
+            type: radarr
+            url: http://radarr.radarr.svc.cluster.local
+            key: "{{HOMEPAGE_VAR_RADARR_KEY}}"
+      - Transmission:
+          icon: transmission.png
+          href: https://transmission.${domain_root}/
+          description: Torrent client
+          widget:
+            type: transmission
+            url: http://transmission.transmission.svc.cluster.local:9091
+            username: "{{HOMEPAGE_VAR_TRANSMISSION_USER}}"
+            password: "{{HOMEPAGE_VAR_TRANSMISSION_PASS}}"
+
+    - Tracking:
+      - Yamtrack:
+          icon: yamtrack.png
+          href: https://yam.${domain_root}/
+          description: Media tracker
+
+    - Media:
+      - Overseerr:
+          icon: overseerr.png
+          href: https://overseerr.${domain_root}/
+          description: Plex request management
+          widget:
+            type: overseerr
+            url: http://overseerr.overseerr.svc.cluster.local:5055
+            key: "{{HOMEPAGE_VAR_OVERSEERR_KEY}}"
+      - Plex:
+          icon: plex.png
+          href: http://plex.${domain_root}:32400/web/
+          description: Plex
+          widget:
+            type: plex
+            url: http://${plex_lb_ip}:32400
+            key: "{{HOMEPAGE_VAR_PLEX_TOKEN}}"
+
+  widgets.yaml: |
+    - resources:
+        cpu: true
+        memory: true
+        disk: /
+    - search:
+        provider: duckduckgo
+        target: _blank
+
+  bookmarks.yaml: |
+    - Developer:
+      - Github:
+          - abbr: GH
+            href: https://github.com/
+
+  kubernetes.yaml: |
+    mode: cluster
+
+  docker.yaml: ""
+  custom.css: ""
+  custom.js: ""

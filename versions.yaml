@@ -26,4 +26,13 @@ certmanager_version: "v1.17.2"  # infrastructure/controllers/cert-manager.yaml
 # Populated as each app is ported from Terraform to apps/base/.
 # Terraform never pinned these, so today's versions are whatever was latest at
 # apply time. Pin each one as it moves.
-overseerr_version: "18.6.0"   # apps/base/overseerr/release.yaml (app 1.35.0)
+overseerr_version:    "18.6.0"   # app 1.35.0
+radarr_version:       "27.13.1"  # app 6.4.3.10645
+sonarr_version:       "26.10.1"  # app 4.0.20.3012
+transmission_version: "25.10.1"  # app 4.1.3
+homepage_version:     "13.6.0"   # app 2.3.0
+
+# Plain Deployments (no chart) — image tags live in the manifests:
+#   plex     lscr.io/linuxserver/plex:latest   apps/base/plex
+#   yamtrack ghcr.io/fuzzygrim/yamtrack:latest apps/base/yamtrack
+#   discord  ${discord_image} (cluster-vars)   apps/base/discord

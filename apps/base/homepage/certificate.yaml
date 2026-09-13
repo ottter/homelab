@@ -1,0 +1,15 @@
+---
+# Signed by the homelab CA (infrastructure/configs/cluster-issuer.yaml).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: homepage-tls
+  namespace: homepage
+spec:
+  secretName: homepage-tls
+  issuerRef:
+    name: homelab-ca
+    kind: ClusterIssuer
+    group: cert-manager.io
+  dnsNames:
+    - "homepage.${domain_root}"

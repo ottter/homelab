@@ -1,8 +1,26 @@
 ---
 # Apps enabled on the 'mini' cluster.
-# Adding an app here replaces Terraform's enable_<app> variable.
+# Listing an app here replaces Terraform's enable_<app> variable.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - ../base/_repos
+  - secrets.enc.yaml
+
+  # Enabled (matches enable_* = true in terraform/homelab.tfvars)
   - ../base/overseerr
+  - ../base/radarr
+  - ../base/sonarr
+  - ../base/transmission
+  - ../base/yamtrack
+  - ../base/homepage
+
+  # Disabled — were enable_* = false in tfvars.
+  # Plex: needs its hostPath dirs present on the node and a valid claim token.
+  # Discord: needs DISCORD_TOKEN set in secrets.enc.yaml and a GHCR pull secret.
+  # - ../base/plex
+  # - ../base/discord
+
+  # NFS media mounts for radarr/sonarr are off until the drive is attached and
+  # the Ansible nfs role has run. To enable, set nfs_enabled: true in
+  # ansible/group_vars/all.yml, then patch persistence.media in the releases.

@@ -1,0 +1,88 @@
+---
+# https://truecharts.org/charts/stable/transmission/
+# Ported from terraform/modules/transmission.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: transmission
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: transmission
+  namespace: transmission
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: transmission
+      version: "25.10.1"
+      sourceRef:
+        kind: HelmRepository
+        name: truecharts
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    global:
+      timezone: "${timezone}"
+
+    persistence:
+      config:
+        enabled: true
+        type: hostPath
+        hostPath: "${transmission_path_config}"
+        mountPath: "/config"
+      downloads:
+        enabled: true
+        type: hostPath
+        hostPath: "${plex_path_downloads}/complete"
+        mountPath: "/downloads/complete"
+        readOnly: false
+      incomplete:
+        enabled: true
+        type: hostPath
+        hostPath: "${plex_path_downloads}/incomplete"
+        mountPath: "/downloads/incomplete"
+        readOnly: false
+
+    workload:
+      main:
+        podSpec:
+          containers:
+            main:
+              # Basic-auth credentials come from the SOPS-encrypted secret
+              # rather than being templated in as plaintext.
+              envFrom:
+                - secretRef:
+                    name: transmission-secrets
+
+    securityContext:
+      container:
+        readOnlyRootFilesystem: false
+        runAsNonRoot: false
+
+    ingress:
+      main:
+        ingressClassName: traefik
+        enabled: true
+        integrations:
+          homepage:
+            enabled: true
+          traefik:
+            enabled: true
+        hosts:
+          - host: "transmission.${domain_root}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - "transmission.${domain_root}"
+            secretName: transmission-tls

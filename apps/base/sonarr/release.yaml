@@ -1,0 +1,77 @@
+---
+# https://truecharts.org/charts/stable/sonarr/
+# Ported from terraform/modules/sonarr.
+#
+# The API key is PINNED via SONARR__AUTH__APIKEY from the SOPS secret.
+# Terraform instead scraped the generated key out of the running pod and fed it
+# to Homepage; Flux cannot read live cluster state, so the key is now declared.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sonarr
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: sonarr
+  namespace: sonarr
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: sonarr
+      version: "26.10.1"
+      sourceRef:
+        kind: HelmRepository
+        name: truecharts
+        namespace: flux-system
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    global:
+      timezone: "${timezone}"
+
+    # NFS media mount is OFF by default (nfs_enabled was false in tfvars and no
+    # exports exist on the node). Enable it per-cluster once the drive is
+    # attached and the Ansible nfs role has run.
+    persistence:
+      media:
+        enabled: false
+
+    workload:
+      main:
+        podSpec:
+          containers:
+            main:
+              env:
+                SONARR__APP__THEME: dark
+              envFrom:
+                - secretRef:
+                    name: sonarr-secrets
+
+    metrics:
+      main:
+        enabled: false
+
+    ingress:
+      main:
+        ingressClassName: traefik
+        enabled: true
+        integrations:
+          homepage:
+            enabled: true
+          traefik:
+            enabled: true
+        hosts:
+          - host: "sonarr.${domain_root}"
+            paths:
+              - path: /
+                pathType: Prefix
+        tls:
+          - hosts:
+              - "sonarr.${domain_root}"
+            secretName: sonarr-tls

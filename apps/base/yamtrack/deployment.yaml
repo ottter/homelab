@@ -1,0 +1,91 @@
+---
+# Ported from terraform/modules/yamtrack.
+#
+# Terraform generated the SECRET with random_password, which meant a new value
+# on every state rebuild. It is now a fixed SOPS-encrypted value so sessions
+# survive redeploys.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: yamtrack
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yamtrack
+  namespace: yamtrack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: yamtrack
+  template:
+    metadata:
+      labels:
+        app: yamtrack
+    spec:
+      containers:
+        - name: yamtrack
+          image: ghcr.io/fuzzygrim/yamtrack:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: yamtrack-secrets
+                  key: SECRET
+            - name: REDIS_URL
+              value: redis://localhost:6379
+            - name: TZ
+              value: "${timezone}"
+            - name: URLS
+              value: "https://yam.${domain_root}"
+          volumeMounts:
+            - name: yamtrack-db
+              mountPath: /yamtrack/db
+        - name: redis
+          image: redis:8-alpine
+      volumes:
+        - name: yamtrack-db
+          hostPath:
+            path: "${yamtrack_path_db}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: yamtrack-service
+  namespace: yamtrack
+spec:
+  type: ClusterIP
+  selector:
+    app: yamtrack
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: yamtrack-ingress
+  namespace: yamtrack
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - "yam.${domain_root}"
+      secretName: yamtrack-tls
+  rules:
+    - host: "yam.${domain_root}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: yamtrack-service
+                port:
+                  number: 8000

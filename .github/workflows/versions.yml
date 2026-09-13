@@ -29,7 +29,11 @@ jobs:
               "metallb_version":     "infrastructure/controllers/metallb.yaml",
               "traefik_version":     "infrastructure/controllers/traefik.yaml",
               "certmanager_version": "infrastructure/controllers/cert-manager.yaml",
-              "overseerr_version":   "apps/base/overseerr/release.yaml",
+              "overseerr_version":    "apps/base/overseerr/release.yaml",
+              "radarr_version":       "apps/base/radarr/release.yaml",
+              "sonarr_version":       "apps/base/sonarr/release.yaml",
+              "transmission_version": "apps/base/transmission/release.yaml",
+              "homepage_version":     "apps/base/homepage/release.yaml",
           }
 
           failed = False

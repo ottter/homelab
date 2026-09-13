@@ -1,0 +1,87 @@
+---
+# Ported from terraform/modules/plex.
+# PLEX_CLAIM comes from the SOPS-encrypted plex-secrets (apps/mini/secrets.enc.yaml)
+# instead of a Terraform variable.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: plex
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  namespace: plex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      containers:
+        - name: plex
+          image: lscr.io/linuxserver/plex:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "${timezone}"
+            - name: VERSION
+              value: docker
+            - name: PLEX_CLAIM
+              valueFrom:
+                secretKeyRef:
+                  name: plex-secrets
+                  key: PLEX_CLAIM
+          volumeMounts:
+            - name: plex-config
+              mountPath: /config
+            - name: tv-series
+              mountPath: /tv
+            - name: movies
+              mountPath: /movies
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 32400
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+      volumes:
+        - name: plex-config
+          hostPath:
+            path: "${plex_path_config}"
+            type: Directory
+        - name: tv-series
+          hostPath:
+            path: "${plex_path_tv}"
+            type: Directory
+        - name: movies
+          hostPath:
+            path: "${plex_path_movies}"
+            type: Directory
+---
+# Plex gets its own MetalLB IP and bypasses Traefik entirely.
+apiVersion: v1
+kind: Service
+metadata:
+  name: plex-service
+  namespace: plex
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "${plex_lb_ip}"
+spec:
+  type: LoadBalancer
+  selector:
+    app: plex
+  ports:
+    - name: plex
+      port: 32400
+      targetPort: 32400
