@@ -17,24 +17,52 @@ data:
       openweathermap: "{{HOMEPAGE_VAR_OPENWEATHERMAP}}"
       weatherapi: "{{HOMEPAGE_VAR_WEATHERAPI}}"
 
+    # Background image.
+    #
+    # 'image' takes any URL the BROWSER can reach (it is not fetched by the
+    # pod), so a remote URL needs no volume. For a local file the container
+    # root is read-only, so it has to arrive on a mounted volume — see the
+    # background-image block in release.yaml, then use /images/<filename>.
+    #
+    # blur:       sm | md | xl        saturate: 0-200
+    # brightness: 0-200               opacity:  0-100
+    background:
+      image: https://portfolio.jamescr.dev/photos/travel/travel-1038a75272c54da795f81471ace610fb.jpg
+      blur: sm
+      brightness: 60
+      opacity: 60
+
+    # Optional: 'theme: dark' / 'color: slate' pin the look instead of
+    # following the browser preference.
+
   services.yaml: |
-    - Arr:
+    - Media Management:
       - Sonarr:
           icon: sonarr.png
           href: https://sonarr.${domain_root}/
-          description: Series management
+          description: TV series
           widget:
             type: sonarr
-            url: http://sonarr.sonarr.svc.cluster.local
+            url: http://sonarr.sonarr.svc.cluster.local:8989
             key: "{{HOMEPAGE_VAR_SONARR_KEY}}"
       - Radarr:
           icon: radarr.png
           href: https://radarr.${domain_root}/
-          description: Movie management
+          description: Movies
           widget:
             type: radarr
-            url: http://radarr.radarr.svc.cluster.local
+            url: http://radarr.radarr.svc.cluster.local:7878
             key: "{{HOMEPAGE_VAR_RADARR_KEY}}"
+      - Overseerr:
+          icon: overseerr.png
+          href: https://overseerr.${domain_root}/
+          description: Requests
+          widget:
+            type: overseerr
+            url: http://overseerr.overseerr.svc.cluster.local:5055
+            key: "{{HOMEPAGE_VAR_OVERSEERR_KEY}}"
+
+    - Downloads:
       - Transmission:
           icon: transmission.png
           href: https://transmission.${domain_root}/
@@ -45,38 +73,78 @@ data:
             username: "{{HOMEPAGE_VAR_TRANSMISSION_USER}}"
             password: "{{HOMEPAGE_VAR_TRANSMISSION_PASS}}"
 
-    - Tracking:
-      - Yamtrack:
-          icon: yamtrack.png
-          href: https://yam.${domain_root}/
-          description: Media tracker
-
-    - Media:
-      - Overseerr:
-          icon: overseerr.png
-          href: https://overseerr.${domain_root}/
-          description: Plex request management
-          widget:
-            type: overseerr
-            url: http://overseerr.overseerr.svc.cluster.local:5055
-            key: "{{HOMEPAGE_VAR_OVERSEERR_KEY}}"
+    - Media Playback:
       - Plex:
           icon: plex.png
           href: http://plex.${domain_root}:32400/web/
-          description: Plex
+          description: Media server
           widget:
             type: plex
             url: http://${plex_lb_ip}:32400
             key: "{{HOMEPAGE_VAR_PLEX_TOKEN}}"
+      - Yamtrack:
+          icon: yamtrack.png
+          href: https://yam.${domain_root}/
+          description: Watch tracker
+
+    # Public sites, not hosted on this cluster. siteMonitor pings the URL from
+    # the Homepage pod and shows up/down plus response time; no API key needed.
+    # These depend on cluster egress, so a DNS or firewall change here shows up
+    # as all four going red at once.
+    #
+    # dles redirects / -> /pick, so it monitors the final URL rather than
+    # timing the redirect; the others return 200 at the root.
+    - Personal Sites:
+      - Dles:
+          icon: si-html5
+          href: https://dles.jamescr.dev/
+          description: Daily puzzle games
+          siteMonitor: https://dles.jamescr.dev/pick
+      - JA Planner:
+          icon: si-googlecalendar
+          href: https://japlanner.jamescr.dev/
+          description: Trip planner
+          siteMonitor: https://japlanner.jamescr.dev
+      - Portfolio:
+          icon: si-readdotcv
+          href: https://portfolio.jamescr.dev/
+          description: Portfolio
+          siteMonitor: https://portfolio.jamescr.dev
+      - jamescr.dev:
+          icon: si-github
+          href: https://jamescr.dev/
+          description: Personal site
+          siteMonitor: https://jamescr.dev
 
   widgets.yaml: |
+    # Node-level CPU/memory via metrics-server, and per-namespace pod health.
+    # The chart's ClusterRole already grants nodes/pods/metrics read access.
+    - kubernetes:
+        cluster:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+          label: minipc
+        nodes:
+          show: false
+    # 'resources' reads the container filesystem, not the host, so no disk gauge
+    # here — it would report Homepage's own overlay, not the node's disk.
     - resources:
         cpu: true
         memory: true
-        disk: /
     - search:
         provider: duckduckgo
         target: _blank
+    # Uses the openweathermap key from settings.yaml providers.
+    # Set latitude/longitude to your own location.
+    - weather:
+        label: Weather
+        latitude: 40.7128
+        longitude: -74.0060
+        units: imperial
+        provider: openweathermap
+        cache: 5
 
   bookmarks.yaml: |
     - Developer:

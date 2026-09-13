@@ -42,13 +42,55 @@ spec:
               envFrom:
                 - secretRef:
                     name: homepage-secrets
-                    # Secret is created by Flux from SOPS, not by the chart.
-                    # Without this TrueCharts looks for it in its own values
-                    # and fails with "Expected Secret ... to exist".
+                    # Secret is created by Flux from SOPS
                     expandObjectName: false
               env:
-                HOMEPAGE_ALLOWED_HOSTS: "homepage.${domain_root}"
-
+                HOMEPAGE_ALLOWED_HOSTS: "homepage.${domain_root}
+    persistence:
+      services-config:
+        enabled: true
+        type: configmap
+        objectName: homepage-config
+        expandObjectName: false
+        defaultMode: "0644"
+        targetSelector:
+          main:
+            main:
+              mountPath: /app/config/services.yaml
+              subPath: services.yaml
+      settings-config:
+        enabled: true
+        type: configmap
+        objectName: homepage-config
+        expandObjectName: false
+        defaultMode: "0644"
+        targetSelector:
+          main:
+            main:
+              mountPath: /app/config/settings.yaml
+              subPath: settings.yaml
+      widgets-config:
+        enabled: true
+        type: configmap
+        objectName: homepage-config
+        expandObjectName: false
+        defaultMode: "0644"
+        targetSelector:
+          main:
+            main:
+              mountPath: /app/config/widgets.yaml
+              subPath: widgets.yaml
+      bookmarks-config:
+        enabled: true
+        type: configmap
+        objectName: homepage-config
+        expandObjectName: false
+        defaultMode: "0644"
+        targetSelector:
+          main:
+            main:
+              mountPath: /app/config/bookmarks.yaml
+              subPath: bookmarks.yaml
     ingress:
       main:
         ingressClassName: traefik

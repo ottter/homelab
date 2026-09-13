@@ -91,3 +91,17 @@ flux suspend kustomization apps
 # ...do the thing...
 flux resume kustomization apps
 ```
+
+## Testing before you commit
+
+Flux reconciles from git with `prune: true`, so anything applied by hand is reverted or deleted on the next reconcile. To try a change first, suspend the owning Kustomization, apply locally, then hand control back:
+
+```sh
+./scripts/test-apply.sh --diff apps/mini   # what would change
+./scripts/test-apply.sh apps/mini          # suspend + apply
+./scripts/test-apply.sh --resume           # back to git
+```
+
+The script runs the same `kustomize build` Flux does, then fills in `${...}` from `cluster-vars.yaml` with `envsubst` — `kubectl apply` alone would leave those literal, since substitution is Flux's `postBuild` step.
+
+While suspended, git is **not** authoritative: a change pushed by someone else will not land until you resume. Always finish with `--resume`.
