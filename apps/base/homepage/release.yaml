@@ -52,7 +52,7 @@ spec:
       services-config:
         enabled: true
         type: configmap
-        objectName: homepage-config
+        objectName: homepage-settings
         expandObjectName: false
         defaultMode: "0644"
         targetSelector:
@@ -63,7 +63,7 @@ spec:
       settings-config:
         enabled: true
         type: configmap
-        objectName: homepage-config
+        objectName: homepage-settings
         expandObjectName: false
         defaultMode: "0644"
         targetSelector:
@@ -74,7 +74,7 @@ spec:
       widgets-config:
         enabled: true
         type: configmap
-        objectName: homepage-config
+        objectName: homepage-settings
         expandObjectName: false
         defaultMode: "0644"
         targetSelector:
@@ -85,7 +85,7 @@ spec:
       bookmarks-config:
         enabled: true
         type: configmap
-        objectName: homepage-config
+        objectName: homepage-settings
         expandObjectName: false
         defaultMode: "0644"
         targetSelector:

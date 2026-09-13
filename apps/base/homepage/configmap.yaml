@@ -1,6 +1,10 @@
 ---
 # Homepage config.
 #
+# Named homepage-settings, NOT homepage-config: the chart generates its own
+# ConfigMap called homepage-config with sample content and overwrites ours
+# on every reconcile.
+#
 # API keys stay as {{HOMEPAGE_VAR_*}} placeholders that Homepage resolves at
 # runtime from the env vars in homepage-secrets, so no secret is written to git.
 #
@@ -8,7 +12,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: homepage-config
+  name: homepage-settings
   namespace: homepage
 data:
   settings.yaml: |
