@@ -2,9 +2,10 @@
 # Network
 lan_subnet: "192.168.0.0/24"
 server_lan_ip: "192.168.0.210"
-networking_metallb_pool: "192.168.0.220-192.168.0.230"  # MetalLB IP pool; first IP is used by Traefik
-networking_traefik_lb_ip: "192.168.0.220"  # Must be first IP of metallb_pool; must match traefik_lb_ip in clusters/mini/cluster-vars.yaml
-plex_lb_ip: "192.168.0.221"  # Must be within metallb_pool; must match plex_lb_ip in clusters/mini/cluster-vars.yaml
+# These two feed dnsmasq only. The MetalLB pool itself is owned by Flux
+# (infrastructure/configs/metallb-pool.yaml) — keep these in sync with it.
+networking_traefik_lb_ip: "192.168.0.220"  # must match traefik_lb_ip in clusters/mini/cluster-vars.yaml
+plex_lb_ip: "192.168.0.221"  # must match plex_lb_ip in clusters/mini/cluster-vars.yaml
 domain_suffix: "local"  # Must match domain_root in clusters/mini/cluster-vars.yaml
 
 # System
@@ -27,12 +28,6 @@ hardening_fail2ban_findtime: 600
 
 # k3s — version comes from ../versions.yaml (loaded by playbook vars_files)
 k3s_force_reinstall: false
-
-# Networking (MetalLB + Traefik + cert-manager)
-# Chart versions moved to ../versions.yaml and are applied by Flux, not Ansible.
-# See infrastructure/controllers/.
-# networking_letsencrypt_email: ""            # Required for Let's Encrypt ClusterIssuer
-# networking_letsencrypt_cloudflare_token: "" # Cloudflare API token: Zone:DNS:Edit on website.dev
 
 # NFS (disabled until external drive is attached — set nfs_enabled: true to activate)
 nfs_enabled: false

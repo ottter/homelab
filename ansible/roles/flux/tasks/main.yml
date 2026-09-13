@@ -110,21 +110,33 @@
       become: false
       changed_when: false
 
+    # The '.' in tls.crt must be escaped AND the jsonpath quoted — otherwise
+    # kubectl reads it as a path separator, finds nothing, and returns an empty
+    # string, which silently produced a 0-byte CA file.
     - name: Read homelab CA certificate from cluster
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
           kubectl get secret homelab-ca-secret -n cert-manager \
-            -o jsonpath={.data.tls.crt} | base64 -d
+            -o 'jsonpath={.data.tls\.crt}' | base64 -d
         executable: /bin/bash
       environment:
         KUBECONFIG: /etc/rancher/k3s/k3s.yaml
       register: flux_ca_cert
       changed_when: false
 
+    - name: Verify the CA certificate is not empty
+      ansible.builtin.assert:
+        that:
+          - flux_ca_cert.stdout | length > 0
+          - "'BEGIN CERTIFICATE' in flux_ca_cert.stdout"
+        fail_msg: >-
+          Extracted CA certificate is empty or malformed — check the jsonpath
+          and that homelab-ca-secret exists in the cert-manager namespace.
+
     - name: Write CA cert to /etc/homelab-ca.crt
       ansible.builtin.copy:
-        content: "{{ flux_ca_cert.stdout }}"
+        content: "{{ flux_ca_cert.stdout }}\n"
         dest: /etc/homelab-ca.crt
         owner: root
         group: root

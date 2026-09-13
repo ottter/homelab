@@ -1,8 +1,8 @@
 ---
-# Fallback defaults — all of these should be set in group_vars/all.yml.
-# Values here are only used if group_vars doesn't define them.
-networking_metallb_pool: "192.168.0.220-192.168.0.230"
-networking_traefik_lb_ip: "192.168.0.220"  # Must match first IP of metallb_pool
-networking_metallb_version: "0.14.9"
-networking_traefik_version: "35.2.0"
-networking_certmanager_version: "v1.17.2"
+# Chart versions and network config moved out of this role:
+#   versions   -> versions.yaml (repo root)
+#   pool / IPs -> clusters/mini/cluster-vars.yaml, applied by Flux
+#
+# Only the Helm CLI toggle remains. Helm is not required — Flux's helm-controller
+# runs in-cluster — so this is purely for manual inspection on the server.
+networking_install_helm: true

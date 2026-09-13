@@ -8,7 +8,6 @@ clusters/         Flux entrypoint per cluster
 infrastructure/   cluster addons (MetalLB, cert-manager, Traefik)
 apps/             workloads
 docs/             documentation
-terraform/        legacy, superseded by Flux
 ```
 
 ## Deploy

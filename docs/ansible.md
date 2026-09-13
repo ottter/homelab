@@ -32,16 +32,15 @@ It also exports the homelab CA to `/etc/homelab-ca.crt` and fetches a copy local
 
 ## The networking role
 
-Mostly commented out. MetalLB, Traefik, cert-manager and their config moved to `infrastructure/`, since two owners for the same resources causes drift.
+Now installs the Helm CLI and nothing else. MetalLB, Traefik, cert-manager and their config moved to `infrastructure/`, because two owners for the same resources causes drift.
 
-Kept commented rather than deleted so the rollback path is visible:
+Helm is not required — Flux's helm-controller runs in-cluster — so it is there only for inspecting releases by hand (`helm list`, `helm get values`). Set `networking_install_helm: false` to skip it.
+
+To hand control back to Ansible, suspend Flux first and restore the tasks from git history:
 
 ```sh
 flux suspend kustomization infra-controllers infra-configs
-# then uncomment the tasks
 ```
-
-Only the Helm install remains active.
 
 ## k3s argument drift
 
@@ -79,9 +78,8 @@ Tuneables live in [`group_vars/all.yml`](../ansible/group_vars/all.yml); version
 | `hostname` | `minipc` | Server hostname |
 | `timezone` | `America/New_York` | System timezone |
 | `domain_suffix` | `local` | dnsmasq domain — **must match `domain_root` in cluster-vars** |
-| `networking_metallb_pool` | `192.168.0.220-192.168.0.230` | MetalLB pool — must not overlap DHCP |
-| `networking_traefik_lb_ip` | `192.168.0.220` | Traefik IP — must be first in the pool |
-| `plex_lb_ip` | `192.168.0.221` | Plex IP — must be within the pool |
+| `networking_traefik_lb_ip` | `192.168.0.220` | Traefik IP, for dnsmasq — keep in sync with cluster-vars |
+| `plex_lb_ip` | `192.168.0.221` | Plex IP, for dnsmasq — keep in sync with cluster-vars |
 | `k3s_force_reinstall` | `false` | Force a k3s reinstall |
 | `hardening_ssh_port` | `22` | SSH port |
 | `hardening_ssh_password_auth` | `no` | Set `yes` temporarily if the key is not on the server yet |
@@ -92,3 +90,4 @@ Tuneables live in [`group_vars/all.yml`](../ansible/group_vars/all.yml); version
 | `nfs_mount_point` | `/mnt/plex` | Mount point |
 | `nfs_fs_type` | `xfs` | Filesystem type |
 | `nfs_owner_uid` | `1000` | UID owning the NFS directories |
+| `networking_install_helm` | `true` | Install the Helm CLI on the server |
