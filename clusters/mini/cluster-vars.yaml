@@ -11,6 +11,7 @@ metadata:
   namespace: flux-system
 data:
   domain_root: "local"
+  timezone: "America/New_York"
   server_ip: "192.168.0.210"
   traefik_lb_ip: "192.168.0.220"
   plex_lb_ip: "192.168.0.221"

@@ -26,3 +26,4 @@ certmanager_version: "v1.17.2"  # infrastructure/controllers/cert-manager.yaml
 # Populated as each app is ported from Terraform to apps/base/.
 # Terraform never pinned these, so today's versions are whatever was latest at
 # apply time. Pin each one as it moves.
+overseerr_version: "18.6.0"   # apps/base/overseerr/release.yaml (app 1.35.0)

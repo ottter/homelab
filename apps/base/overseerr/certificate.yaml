@@ -1,0 +1,19 @@
+---
+# Signed by the homelab CA (infrastructure/configs/cluster-issuer.yaml).
+#
+# In Terraform this was a kubernetes_manifest, which needed the cert-manager
+# CRDs present at plan time — so a clean apply could never work in one pass.
+# Flux applies server-side and retries, so ordering resolves itself.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: overseerr-tls
+  namespace: overseerr
+spec:
+  secretName: overseerr-tls
+  issuerRef:
+    name: homelab-ca
+    kind: ClusterIssuer
+    group: cert-manager.io
+  dnsNames:
+    - "overseerr.${domain_root}"
