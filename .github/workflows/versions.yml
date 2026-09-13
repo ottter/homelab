@@ -52,5 +52,29 @@ jobs:
               else:
                   print(f"OK    {path}: {actual}")
 
+          # Plain Deployments: versions.yaml key -> (manifest, image repo)
+          images = {
+              "plex_image_tag":     ("apps/base/plex/deployment.yaml",
+                                     "lscr.io/linuxserver/plex"),
+              "yamtrack_image_tag": ("apps/base/yamtrack/deployment.yaml",
+                                     "ghcr.io/fuzzygrim/yamtrack"),
+              "redis_image_tag":    ("apps/base/yamtrack/deployment.yaml",
+                                     "redis"),
+          }
+
+          for key, (path, repo) in images.items():
+              expected = versions.get(key)
+              p = pathlib.Path(path)
+              if not p.exists():
+                  print(f"SKIP  {path} (not present)")
+                  continue
+              m = re.search(r'image:\s*"?%s:([^"\s]+)"?' % re.escape(repo), p.read_text())
+              actual = m.group(1) if m else None
+              if actual != expected:
+                  print(f"FAIL  {path} [{repo}]: pinned {actual!r} but versions.yaml says {expected!r}")
+                  failed = True
+              else:
+                  print(f"OK    {path} [{repo}]: {actual}")
+
           sys.exit(1 if failed else 0)
           PY

@@ -6,7 +6,7 @@ kind: Kustomization
 resources:
   - ../base/_repos
 
-  # Enabled (matches enable_* = true in terraform/homelab.tfvars)
+  # Enabled
   - ../base/overseerr
   - ../base/radarr
   - ../base/sonarr
@@ -14,7 +14,7 @@ resources:
   - ../base/yamtrack
   - ../base/homepage
 
-  # Disabled — were enable_* = false in tfvars.
+  # Disabled.
   # Plex: needs its hostPath dirs present on the node and a valid claim token.
   # Discord: needs DISCORD_TOKEN set in secrets.enc.yaml and a GHCR pull secret.
   # - ../base/plex

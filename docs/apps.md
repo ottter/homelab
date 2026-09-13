@@ -69,6 +69,9 @@ Do it once in each UI: **Settings → Download Clients → + → Transmission**
 | Host | `transmission.transmission.svc.cluster.local` |
 | Port | `9091` |
 | Username / Password | from `transmission-secrets` |
+| Use SSL | off |
+| Add Paused | off |
+| Remove Completed / Failed | on |
 
 Then **Settings → Download Clients → Remote Path Mappings → +**
 

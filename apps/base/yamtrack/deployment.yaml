@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: yamtrack
-          image: ghcr.io/fuzzygrim/yamtrack:latest
+          image: ghcr.io/fuzzygrim/yamtrack:0.26.3
           ports:
             - containerPort: 8000
           env:

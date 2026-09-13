@@ -1,6 +1,15 @@
 ---
-# Restricts ingress to LAN sources. Apps opt in by referencing this middleware:
+# Restricts ingress to LAN sources.
+#
+# NOTE: nothing currently references this. TrueCharts apps attach their own
+# tc-basic-secure-headers middleware instead, and the cluster is LAN-only
+# (Traefik holds a private MetalLB IP with no port forward), so it is defence
+# in depth rather than the only control.
+#
+# To use it, add to an Ingress:
 #   traefik.ingress.kubernetes.io/router.middlewares: traefik-local-ipallowlist@kubernetescrd
+# Chart-managed ingresses need it merged with their existing middleware list,
+# not replacing it.
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:

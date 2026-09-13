@@ -3,9 +3,9 @@
 lan_subnet: "192.168.0.0/24"
 server_lan_ip: "192.168.0.210"
 networking_metallb_pool: "192.168.0.220-192.168.0.230"  # MetalLB IP pool; first IP is used by Traefik
-networking_traefik_lb_ip: "192.168.0.220"  # Must be first IP of metallb_pool; must match traefik_lb_ip in terraform/homelab.tfvars
-plex_lb_ip: "192.168.0.221"  # Must be within metallb_pool; must match plex_lb_ip in terraform/homelab.tfvars
-domain_suffix: "local"  # Must match domain_root in terraform/homelab.tfvars
+networking_traefik_lb_ip: "192.168.0.220"  # Must be first IP of metallb_pool; must match traefik_lb_ip in clusters/mini/cluster-vars.yaml
+plex_lb_ip: "192.168.0.221"  # Must be within metallb_pool; must match plex_lb_ip in clusters/mini/cluster-vars.yaml
+domain_suffix: "local"  # Must match domain_root in clusters/mini/cluster-vars.yaml
 
 # System
 hostname: "minipc"
