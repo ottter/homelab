@@ -62,6 +62,10 @@ spec:
               envFrom:
                 - secretRef:
                     name: transmission-secrets
+                    # Secret is created by Flux from SOPS, not by the chart.
+                    # Without this TrueCharts looks for it in its own values
+                    # and fails with "Expected Secret ... to exist".
+                    expandObjectName: false
 
     securityContext:
       container:

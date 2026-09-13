@@ -44,6 +44,10 @@ spec:
               envFrom:
                 - secretRef:
                     name: homepage-secrets
+                    # Secret is created by Flux from SOPS, not by the chart.
+                    # Without this TrueCharts looks for it in its own values
+                    # and fails with "Expected Secret ... to exist".
+                    expandObjectName: false
               env:
                 HOMEPAGE_ALLOWED_HOSTS: "homepage.${domain_root}"
 
