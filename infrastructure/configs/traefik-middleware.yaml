@@ -1,0 +1,14 @@
+---
+# Restricts ingress to LAN sources. Apps opt in by referencing this middleware:
+#   traefik.ingress.kubernetes.io/router.middlewares: traefik-local-ipallowlist@kubernetescrd
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: local-ipallowlist
+  namespace: traefik
+spec:
+  ipAllowList:
+    sourceRange:
+      - "192.168.0.0/16"
+      - "10.0.0.0/8"
+      - "127.0.0.1/32"

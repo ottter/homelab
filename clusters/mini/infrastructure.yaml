@@ -1,0 +1,50 @@
+---
+# Cluster addons, in two stages.
+#
+# controllers: MetalLB, cert-manager, Traefik (installs their CRDs)
+# configs:     IPAddressPool, ClusterIssuer, Middleware (needs those CRDs)
+#
+# The dependsOn between them is what makes this work where Terraform could not:
+# Terraform's kubernetes_manifest needed CRDs present at plan time, so a clean
+# apply was impossible in one pass. Flux just waits and retries.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infra-controllers
+  namespace: flux-system
+spec:
+  interval: 1h
+  retryInterval: 1m
+  timeout: 10m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./infrastructure/controllers
+  prune: true
+  wait: true
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-vars
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infra-configs
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: infra-controllers
+  interval: 1h
+  retryInterval: 1m
+  timeout: 5m
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  path: ./infrastructure/configs
+  prune: true
+  wait: true
+  postBuild:
+    substituteFrom:
+      - kind: ConfigMap
+        name: cluster-vars

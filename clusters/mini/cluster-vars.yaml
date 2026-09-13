@@ -1,0 +1,18 @@
+---
+# Non-secret cluster values, substituted into manifests by Flux at apply time
+# via postBuild.substituteFrom. Replaces Terraform's var/templatefile pattern:
+# write ${domain_root} in any manifest and Flux fills it in.
+#
+# Must stay in sync with ansible/group_vars/all.yml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-vars
+  namespace: flux-system
+data:
+  domain_root: "local"
+  server_ip: "192.168.0.210"
+  traefik_lb_ip: "192.168.0.220"
+  plex_lb_ip: "192.168.0.221"
+  metallb_pool: "192.168.0.220-192.168.0.230"
+  nfs_mount_point: "/mnt/plex"

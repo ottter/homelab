@@ -7,9 +7,39 @@ See [`ansible/README.md`](ansible/README.md) and [`terraform/README.md`](terrafo
 ## Structure
 
 ```text
-ansible/    — server provisioning (OS hardening, k3s, MetalLB, Traefik, NFS, dnsmasq)
-terraform/  — cluster workloads (Plex, Radarr, Sonarr, Transmission, Homepage, etc.)
+ansible/         — server provisioning (OS hardening, k3s, MetalLB, Traefik, NFS, dnsmasq, Flux bootstrap)
+clusters/        — Flux entrypoint per cluster
+infrastructure/  — cluster addons managed by Flux
+apps/            — workloads (Plex, Radarr, Sonarr, Transmission, Homepage, etc.)
+terraform/       — legacy, being migrated to Flux
 ```
+
+## Tooling prerequisites
+
+Run from WSL (Ubuntu). `age` 1.0.0 from apt is fine — the file format is stable.
+
+| Tool | Purpose |
+| --- | --- |
+| `kubectl` | cluster access |
+| `flux` | GitOps reconciliation |
+| `sops` | encrypts secret values in git |
+| `age` | encryption backend for sops |
+
+```sh
+sudo apt install age
+# flux: curl -s https://fluxcd.io/install.sh | sudo bash
+# sops: download .deb from github.com/getsops/sops/releases
+```
+
+### SOPS key setup (once)
+
+```sh
+age-keygen -o ~/.config/sops/age/keys.txt   # public key goes in .sops.yaml
+```
+
+**Back up `keys.txt` offline.** Without it every `*.enc.yaml` in this repo is unrecoverable.
+
+Edit secrets with `sops path/to/file.enc.yaml` — decrypts to your editor, re-encrypts on save.
 
 ## Network prerequisites
 
@@ -32,11 +62,11 @@ These are one-time router/network settings required before deploying.
   - `plex_lb_ip` — `ansible/group_vars/all.yml` and `terraform/homelab.tfvars`
   - `domain_suffix` (Ansible) / `domain_root` (Terraform) — both default to `local`
 
-## Deployment order
+## Deployment
 
-Ansible must run first to provision the server and bring up k3s, then Terraform deploys workloads onto the cluster.
+One command builds the cluster. After that, deploying apps is `git push` — Flux reconciles the repo onto the cluster automatically.
 
-### 1. Provision with Ansible
+### Build the cluster
 
 ```sh
 # Generate SSH key (once)
@@ -45,19 +75,26 @@ ssh-copy-id -i ~/.ssh/{KEY_NAME}.pub {username}@{homelab_server_ip}
 
 # Configure and run
 cd ansible/
-cp .env.example .env  # fill in own information
+cp .env.example .env  # fill out the variables with correct information
 set -a && . .env && set +a
 ansible-galaxy collection install -r requirements.yml
 ansible-playbook playbook_bootstrap.yml
 ```
 
-### 2. Deploy with Terraform
+Provisions the OS, k3s, MetalLB/Traefik/cert-manager, NFS, dnsmasq, then bootstraps Flux and loads the age key for secret decryption. Idempotent — safe to re-run.
+
+Changing `k3s_extra_args` triggers a k3s reinstall to converge the running service. This preserves `/var/lib/rancher/k3s` — etcd and all workloads survive.
+
+### Deploy apps
 
 ```sh
-cd terraform/
-cp terraform.tfvars homelab.tfvars  # terraform.tfvars is the committed template — copy and fill in secrets
-terraform init
-terraform apply -var-file=homelab.tfvars
+git push
+```
+
+Flux polls the repo and applies `clusters/mini`. To force an immediate sync:
+
+```sh
+flux reconcile kustomization flux-system --with-source
 ```
 
 ## Trusting the homelab CA

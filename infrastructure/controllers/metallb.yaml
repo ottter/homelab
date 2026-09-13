@@ -1,0 +1,37 @@
+---
+# MetalLB — LoadBalancer IPs on bare metal (L2 mode, no router config needed).
+#
+# Pinned to 0.14.9 to match the release Ansible already installed, so Flux
+# adopts the existing release instead of upgrading it.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: HelmRepository
+metadata:
+  name: metallb
+  namespace: flux-system
+spec:
+  interval: 24h
+  url: https://metallb.github.io/metallb
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: metallb
+  namespace: metallb-system
+spec:
+  interval: 1h
+  chart:
+    spec:
+      chart: metallb
+      version: "0.14.9"
+      sourceRef:
+        kind: HelmRepository
+        name: metallb
+        namespace: flux-system
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
+  values:
+    speaker:
+      frr:
+        enabled: false

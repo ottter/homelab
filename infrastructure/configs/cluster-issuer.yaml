@@ -1,0 +1,42 @@
+---
+# Homelab CA chain: a self-signed issuer mints the CA cert, and the CA issuer
+# signs every *.local service certificate from it.
+#
+# This spec is byte-identical to what the Ansible networking role applied.
+# cert-manager sees no change and keeps the existing homelab-ca-secret, so the
+# CA your machines already trust is preserved (expires 2026-12-12).
+#
+# Changing commonName, privateKey, or duration here mints a NEW CA and every
+# browser must re-import it. Don't edit casually.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: homelab-ca-issuer
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: homelab-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: HomeLab CA
+  secretName: homelab-ca-secret
+  privateKey:
+    algorithm: RSA
+    size: 2048
+  issuerRef:
+    name: homelab-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# Apps reference this issuer in their Certificate resources.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: homelab-ca
+spec:
+  ca:
+    secretName: homelab-ca-secret

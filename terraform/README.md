@@ -100,7 +100,7 @@ rsync -av --progress "Ghost In The Shell 1995.mp4" james@lab:/mnt/plex/movies/
 
 ### Discord-bot
 
-No ingress — connects outbound to Discord's API only. Requires `discord_token` in tfvars (bot token from <https://discord.com/developers/applications>) and a GHCR fine-grained PAT with `read:packages` scope.
+Requires `discord_token` in tfvars (bot token from <https://discord.com/developers/applications>) and a GHCR fine-grained PAT with `read:packages` scope.
 
 ```sh
 # force a redeploy after pushing a new image to the same tag

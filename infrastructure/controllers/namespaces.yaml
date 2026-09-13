@@ -1,0 +1,30 @@
+---
+# PSA labels must exist before the controllers deploy into these namespaces.
+# k3s enforces 'baseline' cluster-wide (see ansible/roles/k3s psa.yaml); MetalLB
+# and cert-manager need 'privileged' to run.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: metallb-system
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+  labels:
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik
+  labels:
+    pod-security.kubernetes.io/enforce: baseline
+    pod-security.kubernetes.io/audit: baseline
+    pod-security.kubernetes.io/warn: baseline

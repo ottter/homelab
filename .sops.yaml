@@ -1,0 +1,12 @@
+# SOPS encryption rules.
+# Only the *public* age key lives here — safe to commit.
+# Private key: ~/.config/sops/age/keys.txt in WSL (never committed, back it up).
+#
+# Encrypt/edit:  sops path/to/file.enc.yaml
+#
+# encrypted_regex limits encryption to secret values only, so kind/metadata/name
+# stay readable in diffs.
+creation_rules:
+  - path_regex: \.enc\.yaml$
+    encrypted_regex: ^(data|stringData)$
+    age: age1qkyvh2mrapx0td606w0m8cyc22q2wk4rvpmzvgntpz7eqpx5lvhqmsfap9

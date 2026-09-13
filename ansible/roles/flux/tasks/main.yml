@@ -1,0 +1,89 @@
+---
+# Installs Flux into the cluster and gives it the age key for SOPS decryption.
+#
+# Runs from the control machine (your PC), not the server — uses the local flux
+# CLI and kubeconfig. Nothing is installed on the minipc.
+#
+# Idempotent: `flux bootstrap` reconciles to the desired state, so re-running
+# the playbook is safe.
+
+- name: Flux GitOps setup
+  when: flux_enabled
+  delegate_to: localhost
+  become: false
+  block:
+    - name: Check flux CLI is installed
+      ansible.builtin.command: flux --version
+      register: flux_cli
+      changed_when: false
+      failed_when: false
+
+    - name: Fail if flux CLI is missing
+      ansible.builtin.assert:
+        that: flux_cli.rc == 0
+        fail_msg: >-
+          flux CLI not found. Install it:
+          curl -s https://fluxcd.io/install.sh | sudo bash
+
+    - name: Fail if GITHUB_TOKEN is not set
+      ansible.builtin.assert:
+        that: flux_github_token | length > 0
+        fail_msg: >-
+          GITHUB_TOKEN is not set. Add it to ansible/.env (needs 'repo' scope),
+          then: set -a && . .env && set +a
+
+    - name: Check age key exists on control machine
+      ansible.builtin.stat:
+        path: "{{ flux_age_key_file | expanduser }}"
+      register: flux_age_key
+
+    - name: Fail if age key is missing
+      ansible.builtin.assert:
+        that: flux_age_key.stat.exists
+        fail_msg: >-
+          age key not found at {{ flux_age_key_file }}.
+          Generate it: age-keygen -o ~/.config/sops/age/keys.txt
+
+    # Bootstrap installs the controllers, commits clusters/<name>/flux-system
+    # to the repo, and starts reconciling. Additive — existing workloads
+    # (MetalLB, Traefik, cert-manager) are untouched.
+    - name: Bootstrap Flux against the cluster
+      ansible.builtin.command:
+        cmd: >-
+          flux bootstrap github
+          --owner={{ flux_github_owner }}
+          --repository={{ flux_github_repo }}
+          --branch={{ flux_github_branch }}
+          --path={{ flux_cluster_path }}
+          --personal
+      environment:
+        GITHUB_TOKEN: "{{ flux_github_token }}"
+        KUBECONFIG: "{{ flux_kubeconfig }}"
+      register: flux_bootstrap
+      changed_when: "'components are up to date' not in flux_bootstrap.stdout"
+
+    # Flux needs the private key in-cluster to decrypt *.enc.yaml on apply.
+    # Applied after bootstrap so the flux-system namespace exists.
+    - name: Create sops-age secret for Flux decryption
+      ansible.builtin.shell:
+        cmd: >-
+          kubectl create secret generic sops-age
+          --namespace=flux-system
+          --from-file=age.agekey={{ flux_age_key_file | expanduser }}
+          --dry-run=client -o yaml | kubectl apply -f -
+        executable: /bin/bash
+      environment:
+        KUBECONFIG: "{{ flux_kubeconfig }}"
+      register: flux_sops_secret
+      changed_when: "'configured' in flux_sops_secret.stdout or 'created' in flux_sops_secret.stdout"
+
+    - name: Wait for Flux controllers to be ready
+      ansible.builtin.command:
+        cmd: flux check
+      environment:
+        KUBECONFIG: "{{ flux_kubeconfig }}"
+      register: flux_health
+      retries: 10
+      delay: 10
+      until: flux_health.rc == 0
+      changed_when: false

@@ -1,0 +1,21 @@
+---
+# LoadBalancer IP pool. Must not overlap the router's DHCP range.
+# First IP goes to Traefik; Plex takes its own.
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: homelab-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - ${metallb_pool}
+---
+# L2 mode — announces the pool via ARP. No router config required.
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: homelab-l2
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - homelab-pool

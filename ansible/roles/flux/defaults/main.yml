@@ -1,0 +1,22 @@
+---
+# Fallback defaults — set these in group_vars/all.yml.
+flux_enabled: true
+
+# Git repository Flux reconciles from.
+flux_github_owner: "ottter"
+flux_github_repo: "homelab"
+flux_github_branch: "main"
+
+# Path within the repo holding this cluster's Flux entrypoint.
+flux_cluster_path: "clusters/mini"
+
+# Private repos need a PAT with 'repo' scope; public repos still need one to
+# commit the flux-system manifests. Sourced from .env (see .env.example).
+flux_github_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+
+# age private key used by Flux to decrypt *.enc.yaml at apply time.
+# Read from the control machine (your PC), not the server.
+flux_age_key_file: "~/.config/sops/age/keys.txt"
+
+# Kubeconfig on the control machine, written by the k3s role.
+flux_kubeconfig: "{{ playbook_dir }}/kubeconfig"

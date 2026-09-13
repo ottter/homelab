@@ -8,6 +8,7 @@
 #
 # After first run, test with:
 #   KUBECONFIG=ansible/kubeconfig kubectl get nodes
+#   KUBECONFIG=ansible/kubeconfig flux get kustomizations
 
 - name: Provision minipc
   hosts: minipc
@@ -20,3 +21,4 @@
     - networking
     - nfs
     - dnsmasq
+    - flux

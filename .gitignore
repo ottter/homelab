@@ -44,3 +44,11 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# SOPS / age — private keys must never be committed.
+# Encrypted *.enc.yaml files ARE committed; these patterns catch the plaintext.
+*.agekey
+keys.txt
+*-decrypted.yaml
+secrets.yaml
+!*.enc.yaml
