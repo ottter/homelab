@@ -1,8 +1,12 @@
 ---
-# Applied by Flux's own flux-system Kustomization, created at bootstrap.
+# Root of the cluster. Flux's flux-system Kustomization watches ./clusters/mini
+# with prune: true, so this file must list EVERYTHING that should exist —
+# including Flux's own components. Omitting flux-system/ would prune the
+# controllers on the next reconcile.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
+  - flux-system
   - cluster-vars.yaml
   - infrastructure.yaml
   - apps.yaml
