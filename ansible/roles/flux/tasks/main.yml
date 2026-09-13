@@ -66,11 +66,12 @@
     # Applied after bootstrap so the flux-system namespace exists.
     - name: Create sops-age secret for Flux decryption
       ansible.builtin.shell:
-        cmd: >-
-          kubectl create secret generic sops-age
-          --namespace=flux-system
-          --from-file=age.agekey={{ flux_age_key_file | expanduser }}
-          --dry-run=client -o yaml | kubectl apply -f -
+        cmd: |
+          set -o pipefail
+          kubectl create secret generic sops-age \
+            --namespace=flux-system \
+            --from-file=age.agekey={{ flux_age_key_file | expanduser }} \
+            --dry-run=client -o yaml | kubectl apply -f -
         executable: /bin/bash
       environment:
         KUBECONFIG: "{{ flux_kubeconfig }}"

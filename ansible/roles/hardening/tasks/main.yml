@@ -44,6 +44,30 @@
     src: "{{ lan_subnet }}"
     comment: "k3s API from LAN"
 
+# MetalLB assigns LoadBalancer IPs on the LAN interface, and kube-proxy backs
+# them with NodePorts. Without this, any LoadBalancer service other than Traefik
+# (which has its own 80/443 rules) is unreachable.
+- name: Allow k3s NodePorts from LAN only
+  community.general.ufw:
+    rule: allow
+    port: "30000:32767"
+    proto: tcp
+    src: "{{ lan_subnet }}"
+    comment: "k3s NodePorts from LAN"
+
+# Plex bypasses Traefik on its own MetalLB IP (plex_lb_ip), so it needs its own
+# rule rather than riding the 80/443 rules below. Commented out to match the app
+# being disabled in apps/mini — uncomment this task at the same time you
+# uncomment plex in apps/mini/kustomization.yaml.
+#
+# - name: Allow Plex from LAN only
+#   community.general.ufw:
+#     rule: allow
+#     port: "32400"
+#     proto: tcp
+#     src: "{{ lan_subnet }}"
+#     comment: "Plex from LAN"
+
 - name: Allow HTTP (Traefik redirect)
   community.general.ufw:
     rule: allow

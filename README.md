@@ -10,6 +10,16 @@ apps/             workloads
 docs/             documentation
 ```
 
+## Configuration
+
+| File | Holds | Read by |
+| --- | --- | --- |
+| [`clusters/mini/cluster-vars.yaml`](clusters/mini/cluster-vars.yaml) | IPs, domain, timezone, paths, **versions** | Flux (substitution) + Ansible (`vars_files`) |
+| [`ansible/group_vars/all.yml`](ansible/group_vars/all.yml) | SSH hardening, fail2ban, NFS device, k3s version | Ansible only |
+| [`ansible/hosts.yml`](ansible/hosts.yml) | Ansible host information | Ansible only |
+
+Secrets are separate and encrypted — see [docs/secrets.md](docs/secrets.md).
+
 ## Deploy
 
 One command builds the cluster. After that, `git push` is the deploy.
@@ -23,18 +33,6 @@ ansible-playbook playbook_bootstrap.yml
 ```sh
 git push        # Flux reconciles the repo onto the cluster
 ```
-
-## Configuration
-
-Two files hold everything you would normally want to change. Both tools read
-them, so a value is defined once.
-
-| File | Holds | Read by |
-| --- | --- | --- |
-| [`clusters/mini/cluster-vars.yaml`](clusters/mini/cluster-vars.yaml) | IPs, domain, timezone, paths, **versions** | Flux (substitution) + Ansible (`vars_files`) |
-| [`ansible/group_vars/all.yml`](ansible/group_vars/all.yml) | SSH hardening, fail2ban, NFS device, k3s version | Ansible only |
-
-Secrets are separate and encrypted — see [docs/secrets.md](docs/secrets.md).
 
 ### Changing Settings
 
@@ -54,8 +52,7 @@ the key exists before pushing.
 > [`ansible/hosts.yml`](ansible/hosts.yml) is read before `vars_files` loads, so
 > it cannot reference `cluster-vars`. Keep it equal to `server_ip`.
 
-**A chart or image version** → edit `cluster-vars.yaml`. The manifests carry
-`${radarr_version}` and friends, so the version is written once.
+**A chart or image version** → edit `cluster-vars.yaml`.
 
 ```yaml
 # clusters/mini/cluster-vars.yaml
@@ -67,9 +64,7 @@ plex_image_tag: "1.43.4"      # apps/base/plex/deployment.yaml
 git push
 ```
 
-**The k3s version** → edit `ansible/group_vars/all.yml`, then re-run the
-playbook. Only Ansible installs k3s, so it does not belong in the cluster
-ConfigMap. Changing it reinstalls k3s in place, preserving all workloads.
+**The k3s version** → edit `ansible/group_vars/all.yml`, then re-run the playbook.
 
 ## Docs
 

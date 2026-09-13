@@ -1,0 +1,8 @@
+---
+# args[module] false-positives on the ufw default-policy loop: it cannot see
+# that item.policy only ever resolves to allow/deny/reject.
+warn_list:
+  - args[module]
+
+exclude_paths:
+  - kubeconfig

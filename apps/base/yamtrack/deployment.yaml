@@ -26,6 +26,11 @@ spec:
       labels:
         app: yamtrack
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        runAsNonRoot: true
       containers:
         - name: yamtrack
           image: ghcr.io/fuzzygrim/yamtrack:${yamtrack_image_tag}
@@ -46,8 +51,22 @@ spec:
           volumeMounts:
             - name: yamtrack-db
               mountPath: /yamtrack/db
+          resources:
+            requests: {cpu: 20m, memory: 256Mi}
+            limits: {cpu: 1000m, memory: 1Gi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
         - name: redis
           image: redis:${redis_image_tag}
+          resources:
+            requests: {cpu: 10m, memory: 32Mi}
+            limits: {cpu: 200m, memory: 256Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
       volumes:
         - name: yamtrack-db
           hostPath:
