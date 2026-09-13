@@ -1,11 +1,9 @@
 ---
 # https://truecharts.org/charts/stable/homepage/
-# Ported from terraform/modules/homepage.
 #
-# Terraform built the config files with templatefile() and injected API keys it
-# had scraped from other modules' outputs. Here the config is a ConfigMap and
-# the keys come from the SOPS secret as HOMEPAGE_VAR_* env vars, which Homepage
-# substitutes into its own config at runtime ({{HOMEPAGE_VAR_NAME}}).
+# Config lives in configmap.yaml; API keys come from the SOPS secret as
+# HOMEPAGE_VAR_* env vars, which Homepage substitutes into that config at
+# runtime ({{HOMEPAGE_VAR_NAME}}). No key is ever written to git in clear.
 apiVersion: v1
 kind: Namespace
 metadata:

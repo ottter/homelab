@@ -89,7 +89,7 @@
       until: flux_health.rc == 0
       changed_when: false
 
-# CA export — moved here from the networking role.
+# CA export.
 #
 # Flux mints the homelab CA but cannot write files to the server or fetch them
 # back to your PC. On a fresh build the secret does not exist until Flux has

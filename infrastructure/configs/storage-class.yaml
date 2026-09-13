@@ -1,0 +1,22 @@
+---
+# StorageClass that keeps its data directory when a PVC is deleted.
+#
+# k3s ships 'local-path' with reclaimPolicy: Delete, which erases the backing
+# directory as soon as the PVC goes away. The provisioner names directories
+# after the PVC UID, so a recreated PVC gets a new empty one and the old data
+# is unreachable. Retain leaves the directory in place instead; recovery is
+# manual, but the data survives.
+#
+# Opt in per app with storageClassName: local-path-retain. See docs/backups.md.
+#
+# Deliberately NOT the default class. k3s marks its own 'local-path' default
+# and re-applies that manifest on restart, so claiming default here would
+# either fight k3s forever or leave two default classes — in which case
+# Kubernetes picks arbitrarily. Apps opt in with storageClassName instead.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-path-retain
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer

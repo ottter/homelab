@@ -1,9 +1,7 @@
 ---
-# Ported from terraform/modules/discord.
-#
-# Not enabled by default — enable_discord was false in tfvars and discord_token
-# is empty. To turn on: fill DISCORD_TOKEN in apps/mini/secrets.enc.yaml, set up
-# the GHCR pull secret (see below), then list this app in apps/mini.
+# Disabled by default: DISCORD_TOKEN is empty. To enable, set it in
+# apps/base/discord/secret.enc.yaml, create the GHCR pull secret (see below),
+# then list this app in apps/mini/kustomization.yaml.
 apiVersion: v1
 kind: Namespace
 metadata:

@@ -1,6 +1,6 @@
 ---
-# Apps enabled on the 'mini' cluster.
-# Listing an app here replaces Terraform's enable_<app> variable.
+# Apps enabled on the 'mini' cluster. Listing an app here is what deploys it;
+# commenting it out removes it from the cluster on the next reconcile.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

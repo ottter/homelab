@@ -1,0 +1,19 @@
+# Managed by Ansible (roles/backup) — edits here are overwritten.
+[Unit]
+Description=Homelab config backup
+Documentation=https://github.com/{{ flux_github_owner | default('ottter') }}/homelab
+# k3s must be up: the script talks to the API to quiesce apps.
+After=k3s.service
+Requires=k3s.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/homelab-backup.sh
+# The script's EXIT trap restores replicas; give it room to finish rather than
+# being SIGKILLed mid-restore and leaving apps scaled to 0.
+TimeoutStopSec=300
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=multi-user.target

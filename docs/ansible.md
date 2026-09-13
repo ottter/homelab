@@ -44,9 +44,9 @@ flux suspend kustomization infra-controllers infra-configs
 
 ## k3s argument drift
 
-The install task is guarded on binary existence, so changing `k3s_extra_args` on an existing install used to be silently ignored — the repo and server would diverge.
+The install task is guarded on binary existence, so a changed `k3s_extra_args` would otherwise be silently ignored and the repo would diverge from the server.
 
-The role now compares the desired args against `/etc/systemd/system/k3s.service` and reinstalls when they differ. Reinstalling is non-destructive: it replaces the binary and unit file but leaves `/var/lib/rancher/k3s` alone, so etcd and every workload survive. Same path a k3s version upgrade takes.
+The role compares the desired args against `/etc/systemd/system/k3s.service` and reinstalls when they differ. Reinstalling is non-destructive: it replaces the binary and unit file but leaves `/var/lib/rancher/k3s` alone, so etcd and every workload survive. Same path a k3s version upgrade takes.
 
 ## NFS
 

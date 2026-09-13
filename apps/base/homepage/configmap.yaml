@@ -1,9 +1,8 @@
 ---
-# Homepage config, ported from terraform/modules/homepage/configs/.
+# Homepage config.
 #
-# Terraform baked API keys straight into these files via templatefile(). Here
-# they stay as {{HOMEPAGE_VAR_*}} placeholders that Homepage resolves at runtime
-# from the env vars in homepage-secrets — so no secret is ever written to git.
+# API keys stay as {{HOMEPAGE_VAR_*}} placeholders that Homepage resolves at
+# runtime from the env vars in homepage-secrets, so no secret is written to git.
 #
 # ${domain_root} and ${plex_lb_ip} are Flux substitutions (non-secret).
 apiVersion: v1

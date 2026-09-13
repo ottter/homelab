@@ -2,9 +2,7 @@
 # MetalLB, Traefik, cert-manager, the IPAddressPool, the ClusterIssuer chain and
 # the Traefik middleware are all reconciled by Flux — see infrastructure/.
 #
-# This role previously installed them via helm shell-outs. Those tasks were
-# removed rather than left commented: git history has them, and Flux is the
-# single owner now. To hand control back to Ansible you would suspend the Flux
+# Flux is the single owner. To hand control back to Ansible, suspend the Flux
 # Kustomizations first:
 #   flux suspend kustomization infra-controllers infra-configs
 #

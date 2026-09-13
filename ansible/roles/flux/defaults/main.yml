@@ -11,8 +11,21 @@ flux_github_branch: "main"
 flux_cluster_path: "clusters/mini"
 
 # Private repos need a PAT with 'repo' scope; public repos still need one to
-# commit the flux-system manifests. Sourced from .env (see .env.example).
-flux_github_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+# commit the flux-system manifests.
+#
+# Prefers an exported GITHUB_TOKEN, falling back to reading ansible/.env
+# directly. The env lookup only sees variables exported in the shell that ran
+# ansible-playbook, so 'set -a && . .env' in another terminal — or running from
+# the repo root, where '. .env' finds nothing — silently yields an empty token.
+# The file fallback makes it work either way.
+flux_env_file: "{{ playbook_dir }}/.env"
+flux_github_token: >-
+  {{ (lookup('env', 'GITHUB_TOKEN')
+      | default(lookup('ini', 'GITHUB_TOKEN',
+                       file=flux_env_file,
+                       type='properties',
+                       errors='ignore'), true))
+     | default('', true) | trim | trim('"') | trim("'") }}
 
 # age private key used by Flux to decrypt *.enc.yaml at apply time.
 # Read from the control machine (your PC), not the server.

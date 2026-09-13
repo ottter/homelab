@@ -1,10 +1,9 @@
 ---
 # https://truecharts.org/charts/stable/sonarr/
-# Ported from terraform/modules/sonarr.
 #
-# The API key is PINNED via SONARR__AUTH__APIKEY from the SOPS secret.
-# Terraform instead scraped the generated key out of the running pod and fed it
-# to Homepage; Flux cannot read live cluster state, so the key is now declared.
+# The API key is pinned via SONARR__AUTH__APIKEY from the SOPS secret rather
+# than using the one the app generates on first run, so Homepage can be
+# configured with the same value from git.
 apiVersion: v1
 kind: Namespace
 metadata:

@@ -1,9 +1,6 @@
 ---
-# Ported from terraform/modules/yamtrack.
-#
-# Terraform generated the SECRET with random_password, which meant a new value
-# on every state rebuild. It is now a fixed SOPS-encrypted value so sessions
-# survive redeploys.
+# SECRET is a fixed SOPS-encrypted value rather than a generated one, so user
+# sessions survive a redeploy.
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -26,11 +23,10 @@ spec:
       labels:
         app: yamtrack
     spec:
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
-        runAsNonRoot: true
+      # No pod-level runAsUser: the yamtrack image's entrypoint runs groupmod
+      # to remap its own user, which needs root and a writable /etc/group.
+      # Forcing UID 1000 here makes it CrashLoopBackOff. It drops privileges
+      # itself after startup.
       containers:
         - name: yamtrack
           image: ghcr.io/fuzzygrim/yamtrack:${yamtrack_image_tag}
@@ -54,16 +50,16 @@ spec:
           resources:
             requests: {cpu: 20m, memory: 256Mi}
             limits: {cpu: 1000m, memory: 1Gi}
-          securityContext:
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop: ["ALL"]
+        # redis has no such entrypoint, so it keeps the hardening.
         - name: redis
           image: redis:${redis_image_tag}
           resources:
             requests: {cpu: 10m, memory: 32Mi}
             limits: {cpu: 200m, memory: 256Mi}
           securityContext:
+            runAsUser: 999
+            runAsGroup: 999
+            runAsNonRoot: true
             allowPrivilegeEscalation: false
             capabilities:
               drop: ["ALL"]

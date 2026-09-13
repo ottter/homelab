@@ -1,0 +1,132 @@
+#!/bin/bash
+# Managed by Ansible (roles/backup) — edits here are overwritten.
+#
+# Nightly config backup for the homelab cluster.
+#
+# Backs up app config only. Cluster state lives in git and is rebuilt by Flux;
+# media is re-downloadable. See docs/backups.md.
+#
+# Apps are scaled to 0 for the copy: radarr/sonarr/overseerr/homepage/yamtrack
+# are all SQLite, and archiving a live SQLite file can capture a torn write
+# that restores as a corrupt database.
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+PATH=/usr/local/bin:/usr/bin:/bin
+
+DEST="{{ backup_dest }}"
+RETENTION="{{ backup_retention }}"
+TIMEOUT="{{ backup_scale_timeout }}"
+STAMP="$(date +%Y%m%d-%H%M%S)"
+ARCHIVE="${DEST}/homelab-${STAMP}.tar.gz"
+
+DEPLOYMENTS=(
+{% for d in backup_quiesce_deployments %}
+  "{{ d }}"
+{% endfor %}
+)
+
+PATHS=(
+{% for p in backup_paths %}
+  "{{ p }}"
+{% endfor %}
+)
+
+{% raw %}
+log() { echo "[$(date +%H:%M:%S)] $*"; }
+
+# Scale everything back up no matter how we exit — a failed archive must never
+# leave apps down. Runs on success, failure, and on SIGTERM from systemd.
+SCALED_DOWN=0
+restore_scale() {
+  local rc=$?
+  if [ "${SCALED_DOWN}" -eq 1 ]; then
+    log "restoring replicas"
+    local failed=0
+    for d in "${DEPLOYMENTS[@]}"; do
+      local ns="${d%%/*}" name="${d##*/}"
+      kubectl scale deploy "${name}" -n "${ns}" --replicas=1 >/dev/null 2>&1 || true
+    done
+    # Verify they actually came back. An app that fails to restart is a bigger
+    # problem than a missed backup, so surface it in the unit status.
+    for d in "${DEPLOYMENTS[@]}"; do
+      local ns="${d%%/*}" name="${d##*/}"
+      if ! kubectl rollout status deploy "${name}" -n "${ns}" \
+           --timeout="${TIMEOUT}s" >/dev/null 2>&1; then
+        log "ERROR: ${d} did not become ready after scale-up"
+        failed=1
+      fi
+    done
+    if [ "${failed}" -eq 1 ]; then
+      log "one or more apps are unhealthy — check 'kubectl get pods -A'"
+      exit 1
+    fi
+    log "all apps healthy"
+  fi
+  exit "${rc}"
+}
+trap restore_scale EXIT INT TERM
+
+mkdir -p "${DEST}"
+chmod 700 "${DEST}"
+
+log "scaling down ${#DEPLOYMENTS[@]} deployments"
+SCALED_DOWN=1
+for d in "${DEPLOYMENTS[@]}"; do
+  ns="${d%%/*}"; name="${d##*/}"
+  kubectl scale deploy "${name}" -n "${ns}" --replicas=0 >/dev/null
+done
+
+# Wait for pods to actually exit, not just for the API to accept the scale.
+for d in "${DEPLOYMENTS[@]}"; do
+  ns="${d%%/*}"; name="${d##*/}"
+  kubectl wait --for=delete pod -n "${ns}" -l "app.kubernetes.io/name=${name}" \
+    --timeout="${TIMEOUT}s" >/dev/null 2>&1 || true
+  kubectl wait --for=delete pod -n "${ns}" -l "app=${name}" \
+    --timeout="${TIMEOUT}s" >/dev/null 2>&1 || true
+done
+log "pods stopped"
+
+# Only archive paths that exist; transmission and NFS dirs may be absent.
+EXISTING=()
+for p in "${PATHS[@]}"; do
+  if [ -e "${p}" ]; then
+    EXISTING+=("${p}")
+  else
+    log "skip (absent): ${p}"
+  fi
+done
+
+if [ "${#EXISTING[@]}" -eq 0 ]; then
+  log "ERROR: none of the configured paths exist"
+  exit 1
+fi
+
+log "archiving ${#EXISTING[@]} paths -> ${ARCHIVE}"
+# Write to .part then rename, so an interrupted run never leaves a file that
+# looks like a usable backup.
+tar --create --gzip --preserve-permissions --numeric-owner \
+    --file="${ARCHIVE}.part" \
+    --warning=no-file-changed \
+    "${EXISTING[@]}"
+mv "${ARCHIVE}.part" "${ARCHIVE}"
+chmod 600 "${ARCHIVE}"
+log "archive complete: $(du -h "${ARCHIVE}" | cut -f1)"
+
+# Prune oldest, keeping the newest RETENTION. Only ever touches files matching
+# our own naming pattern.
+mapfile -t OLD < <(find "${DEST}" -maxdepth 1 -name 'homelab-*.tar.gz' -type f \
+                   -printf '%T@ %p\n' | sort -rn | tail -n "+$((RETENTION + 1))" \
+                   | cut -d' ' -f2-)
+if [ "${#OLD[@]}" -gt 0 ]; then
+  for f in "${OLD[@]}"; do
+    log "pruning $(basename "${f}")"
+    rm -f "${f}"
+  done
+fi
+
+log "kept $(find "${DEST}" -maxdepth 1 -name 'homelab-*.tar.gz' -type f | wc -l) snapshot(s)"
+{% endraw %}

@@ -19,14 +19,23 @@
     mode: "0600"
 
 # Step 2: UFW firewall
-- name: Set UFW default policies
+# Written out rather than looped: ansible-lint validates 'policy' against the
+# allowed values and cannot resolve a templated one, and three tasks are
+# clearer than a loop anyway.
+- name: Set UFW default incoming policy to deny
   community.general.ufw:
-    direction: "{{ item.direction }}"
-    policy: "{{ item.policy }}"
-  loop:
-    - { direction: incoming, policy: deny }
-    - { direction: outgoing, policy: allow }
-    - { direction: routed, policy: deny }
+    direction: incoming
+    policy: deny
+
+- name: Set UFW default outgoing policy to allow
+  community.general.ufw:
+    direction: outgoing
+    policy: allow
+
+- name: Set UFW default routed policy to deny
+  community.general.ufw:
+    direction: routed
+    policy: deny
 
 - name: Allow SSH from LAN only
   community.general.ufw:

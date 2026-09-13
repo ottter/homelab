@@ -17,7 +17,7 @@ Flux watches `clusters/mini` and reconciles in a dependency chain:
 flux-system  →  infra-controllers  →  infra-configs  →  apps
 ```
 
-Each stage waits for the one before. That ordering is what Terraform could never do in one pass: `kubernetes_manifest` needed CRDs to exist at *plan* time, so a clean apply was impossible. Flux applies server-side and retries until healthy.
+Each stage waits for the one before, so a clean first apply works: `infra-configs` uses CRDs that `infra-controllers` installs, and Flux retries until they exist.
 
 ## Deploying
 
@@ -38,11 +38,11 @@ flux reconcile kustomization flux-system --with-source
 3. Add its chart version to [`cluster-vars.yaml`](../clusters/mini/cluster-vars.yaml) and reference it as `${<app>_version}`
 4. Push
 
-Listing an app in `apps/mini` is what enables it — that replaces Terraform's `enable_<app>` variables.
+Listing an app in `apps/mini` is what enables it; removing the line deletes it from the cluster on the next reconcile.
 
 ## Variable substitution
 
-`clusters/mini/cluster-vars.yaml` is a ConfigMap of non-secret values. Write `${domain_root}` in any manifest and Flux fills it in at apply time. This replaces Terraform's `templatefile()`.
+`clusters/mini/cluster-vars.yaml` is a ConfigMap of non-secret values. Write `${domain_root}` in any manifest and Flux fills it in at apply time via `postBuild.substituteFrom`.
 
 It is also the source for Ansible: the playbook loads the same file via `vars_files` and maps `data.<key>` onto the variable names the roles use. Change an IP, the domain, the timezone or a storage path in this one file and both tools pick it up.
 

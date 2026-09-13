@@ -1,7 +1,6 @@
 ---
-# Ported from terraform/modules/plex.
-# PLEX_CLAIM comes from the SOPS-encrypted plex-secrets (apps/mini/secrets.enc.yaml)
-# instead of a Terraform variable.
+# PLEX_CLAIM comes from apps/base/plex/secret.enc.yaml. Claim tokens expire a
+# few minutes after being issued, so it must be refreshed before a first start.
 apiVersion: v1
 kind: Namespace
 metadata:

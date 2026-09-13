@@ -1,6 +1,6 @@
 # Secrets
 
-Flux runs **inside** the cluster, so it only sees what is in git. A gitignored file (like Terraform's `homelab.tfvars`) is invisible to it. Secrets therefore live in git, encrypted.
+Flux runs **inside** the cluster, so it only sees what is in git — a gitignored file is invisible to it. Secrets therefore live in git, encrypted.
 
 `age` is the encryption backend; `sops` is the file format. SOPS encrypts only the *values*, leaving keys and structure readable — so diffs still show which secret changed without revealing it.
 
@@ -37,15 +37,15 @@ Safe on a public repo. Without the private key, `sops --decrypt` fails with "Fai
 ## Editing
 
 ```sh
-sops apps/mini/secrets.enc.yaml
+sops apps/base/radarr/secret.enc.yaml
 ```
 
-Opens your editor with plaintext and re-encrypts on save. You never handle ciphertext directly.
+Each app has its own file at `apps/base/<app>/secret.enc.yaml`. Opens your editor with plaintext and re-encrypts on save; you never handle ciphertext directly.
 
 To read without editing:
 
 ```sh
-sops --decrypt apps/mini/secrets.enc.yaml
+sops --decrypt apps/base/radarr/secret.enc.yaml
 ```
 
 ## What is stored
@@ -76,7 +76,9 @@ grep "public key" ~/.config/sops/age/keys-new.txt
 # 3. Re-encrypt. Needs the OLD key to decrypt and the NEW one to encrypt,
 #    so use both at once.
 cat ~/.config/sops/age/keys.txt ~/.config/sops/age/keys-new.txt > ~/.config/sops/age/keys-both.txt
-SOPS_AGE_KEY_FILE=~/.config/sops/age/keys-both.txt sops updatekeys -y apps/mini/secrets.enc.yaml
+for f in apps/base/*/secret.enc.yaml; do
+  SOPS_AGE_KEY_FILE=~/.config/sops/age/keys-both.txt sops updatekeys -y "$f"
+done
 
 # 4. Cluster gets the new key BEFORE the push
 kubectl create secret generic sops-age \

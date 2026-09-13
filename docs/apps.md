@@ -60,7 +60,7 @@ kubectl rollout restart deployment discord -n discord
 
 ## Post-install: Radarr/Sonarr download client
 
-Terraform used to register Transmission automatically via `config.sh`. That is not ported — it is app-level config, not cluster state, and it persists in each app's own database.
+Registering Transmission in Radarr/Sonarr is manual: it is app-level config rather than cluster state, and it persists in each app's own database.
 
 Do it once in each UI: **Settings → Download Clients → + → Transmission**
 
@@ -85,7 +85,7 @@ Then **Settings → Download Clients → Remote Path Mappings → +**
 
 Radarr and Sonarr keys are **pinned** in `secrets.enc.yaml` and injected as `RADARR__AUTH__APIKEY` / `SONARR__AUTH__APIKEY`. Both adopt them at startup, and Homepage reads the same values.
 
-Terraform instead scraped the generated key out of the running pod. Flux cannot read live cluster state, so the key is declared rather than discovered.
+The key is declared rather than discovered, because Flux cannot read live cluster state to pass a generated key to Homepage.
 
 Changing a key means updating it in `secrets.enc.yaml` — both the app and Homepage pick it up.
 

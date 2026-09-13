@@ -1,6 +1,5 @@
 ---
 # https://truecharts.org/charts/stable/transmission/
-# Ported from terraform/modules/transmission.
 apiVersion: v1
 kind: Namespace
 metadata:

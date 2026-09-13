@@ -1,0 +1,71 @@
+---
+# Nightly on-node config backup. See docs/backups.md for scope and restore.
+- name: Backup setup
+  when: backup_enabled
+  block:
+    - name: Create backup destination
+      ansible.builtin.file:
+        path: "{{ backup_dest }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Install backup script
+      ansible.builtin.template:
+        src: homelab-backup.sh.j2
+        dest: /usr/local/bin/homelab-backup.sh
+        owner: root
+        group: root
+        mode: "0700"
+        validate: bash -n %s
+
+    - name: Install systemd service
+      ansible.builtin.template:
+        src: homelab-backup.service.j2
+        dest: /etc/systemd/system/homelab-backup.service
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload systemd
+
+    - name: Install systemd timer
+      ansible.builtin.template:
+        src: homelab-backup.timer.j2
+        dest: /etc/systemd/system/homelab-backup.timer
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload systemd
+
+    # Flush now so the timer below enables against the current unit files.
+    - name: Apply systemd changes before enabling the timer
+      ansible.builtin.meta: flush_handlers
+
+    - name: Enable and start the backup timer
+      ansible.builtin.systemd:
+        name: homelab-backup.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+
+# Remove cleanly when disabled, rather than leaving an orphaned timer running.
+- name: Backup teardown
+  when: not backup_enabled
+  block:
+    - name: Stop and disable the backup timer
+      ansible.builtin.systemd:
+        name: homelab-backup.timer
+        enabled: false
+        state: stopped
+      failed_when: false
+
+    - name: Remove backup units and script
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/systemd/system/homelab-backup.timer
+        - /etc/systemd/system/homelab-backup.service
+        - /usr/local/bin/homelab-backup.sh
+      notify: Reload systemd

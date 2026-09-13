@@ -1,9 +1,8 @@
 ---
 # Signed by the homelab CA (infrastructure/configs/cluster-issuer.yaml).
 #
-# In Terraform this was a kubernetes_manifest, which needed the cert-manager
-# CRDs present at plan time — so a clean apply could never work in one pass.
-# Flux applies server-side and retries, so ordering resolves itself.
+# The cert-manager CRDs this depends on are applied by the infra-controllers
+# Kustomization, which infra-configs and apps both wait on.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:

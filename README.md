@@ -75,6 +75,7 @@ git push
 | [Secrets](docs/secrets.md) | SOPS + age, editing secrets, key rotation |
 | [Apps](docs/apps.md) | What runs, URLs, per-app setup |
 | [Ansible](docs/ansible.md) | Roles, variables, k3s drift |
+| [Backups](docs/backups.md) | What is backed up, restoring, reclaim policy |
 | [Troubleshooting](docs/troubleshooting.md) | When something breaks |
 
 ## Services

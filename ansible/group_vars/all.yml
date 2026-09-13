@@ -31,3 +31,9 @@ k3s_force_reinstall: false
 nfs_enabled: false
 nfs_device: "/dev/sdb1"
 nfs_owner_uid: 1000
+
+# Backups — nightly on-node config snapshot to /var/backups/homelab.
+# App config only; cluster state is rebuilt from git by Flux. See docs/backups.md.
+backup_enabled: true
+backup_retention: 7
+backup_on_calendar: "03:30"

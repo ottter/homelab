@@ -1,0 +1,13 @@
+# Managed by Ansible (roles/backup) — edits here are overwritten.
+[Unit]
+Description=Daily homelab config backup
+
+[Timer]
+OnCalendar={{ backup_on_calendar }}
+RandomizedDelaySec={{ backup_randomized_delay }}
+# Run on next boot if the machine was off at the scheduled time.
+Persistent=true
+Unit=homelab-backup.service
+
+[Install]
+WantedBy=timers.target

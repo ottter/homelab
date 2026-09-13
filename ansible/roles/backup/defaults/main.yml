@@ -1,0 +1,39 @@
+---
+# Fallback defaults — set backup_enabled and retention in group_vars/all.yml.
+#
+# Scope: app CONFIG only (a few MB). Cluster state is not backed up because
+# Flux rebuilds it from git, and media is not backed up because it is large
+# and re-downloadable. See docs/backups.md.
+backup_enabled: false
+
+# On-node only. Nothing is copied back to the repo or off the machine.
+backup_dest: "/var/backups/homelab"
+
+# Snapshots to keep. One run per day, so this is roughly N days of history.
+backup_retention: 7
+
+# Daily run time, systemd OnCalendar format.
+backup_on_calendar: "03:30"
+
+# Spread the start to avoid hitting a busy minute exactly.
+backup_randomized_delay: "10m"
+
+# Deployments stopped for the duration of the copy. These are all SQLite-backed;
+# copying a live SQLite file can capture a torn write that restores corrupt.
+# Format: namespace/name. Order does not matter.
+backup_quiesce_deployments:
+  - radarr/radarr
+  - sonarr/sonarr
+  - overseerr/overseerr
+  - homepage/homepage
+  - yamtrack/yamtrack
+
+# Paths archived. Missing paths are skipped, not fatal — transmission and the
+# NFS-backed dirs may legitimately not exist yet.
+backup_paths:
+  - /var/lib/rancher/k3s/storage
+  - /var/lib/yamtrack/db
+  - /mnt/plex/transmission/config
+
+# Seconds to wait for pods to terminate, and for them to come back healthy.
+backup_scale_timeout: 120

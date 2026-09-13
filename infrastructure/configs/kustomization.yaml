@@ -5,3 +5,4 @@ resources:
   - metallb-pool.yaml
   - cluster-issuer.yaml
   - traefik-middleware.yaml
+  - storage-class.yaml

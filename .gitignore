@@ -16,3 +16,8 @@ keys.txt
 *-decrypted.yaml
 secrets.yaml
 !*.enc.yaml
+
+# Backup archives live on the node (/var/backups/homelab), never in the repo.
+# This is only a backstop against a stray copy landing here.
+*.tar.gz
+homelab-*.tar.gz
