@@ -64,10 +64,9 @@ Put the printed public key in `.sops.yaml`, and **back up `keys.txt` offline**.
 | [`ansible/hosts.yml`](../ansible/hosts.yml) | server IP, username, SSH key path |
 | [`ansible/group_vars/all.yml`](../ansible/group_vars/all.yml) | hostname, timezone, network, NFS |
 | [`ansible/.env`](../ansible/.env.example) | `HOMELAB_PASSWORD`, `GITHUB_TOKEN` (gitignored) |
-| [`versions.yaml`](../versions.yaml) | every pinned version |
-| [`clusters/mini/cluster-vars.yaml`](../clusters/mini/cluster-vars.yaml) | IPs, paths, domain |
+| [`clusters/mini/cluster-vars.yaml`](../clusters/mini/cluster-vars.yaml) | IPs, paths, domain, versions |
 
-`domain_suffix` (Ansible) and `domain_root` (cluster-vars) must match. Both default to `local`.
+`cluster-vars.yaml` is shared: Flux substitutes from it and Ansible reads the same file, so the domain, IPs and paths are defined once. The only value that must be repeated is `ansible_host` in `hosts.yml` — keep it equal to `server_ip`.
 
 The `GITHUB_TOKEN` needs `repo` **and** `workflow` scope — without `workflow`, pushes touching `.github/` are rejected.
 

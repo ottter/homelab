@@ -35,7 +35,7 @@ flux reconcile kustomization flux-system --with-source
 
 1. Create `apps/base/<name>/` with a `kustomization.yaml` listing its resources
 2. Add the app to `apps/mini/kustomization.yaml`
-3. Pin its chart version in [`versions.yaml`](../versions.yaml) and the CI check
+3. Add its chart version to [`cluster-vars.yaml`](../clusters/mini/cluster-vars.yaml) and reference it as `${<app>_version}`
 4. Push
 
 Listing an app in `apps/mini` is what enables it — that replaces Terraform's `enable_<app>` variables.
@@ -44,17 +44,34 @@ Listing an app in `apps/mini` is what enables it — that replaces Terraform's `
 
 `clusters/mini/cluster-vars.yaml` is a ConfigMap of non-secret values. Write `${domain_root}` in any manifest and Flux fills it in at apply time. This replaces Terraform's `templatefile()`.
 
+It is also the source for Ansible: the playbook loads the same file via `vars_files` and maps `data.<key>` onto the variable names the roles use. Change an IP, the domain, the timezone or a storage path in this one file and both tools pick it up.
+
+It stays shaped as a ConfigMap because Flux substitution reads from the cluster, not from a file — that is the one format both tools can consume.
+
 **An undefined variable substitutes to an empty string, silently.** Before pushing, check every `${var}` you used is defined in that ConfigMap.
 
 Secrets never go here — see [secrets.md](secrets.md).
 
 ## Versions
 
-[`versions.yaml`](../versions.yaml) is the single source of truth. Ansible reads it directly via `vars_files`.
+Chart and image versions live in `cluster-vars.yaml` alongside the other
+settings, and are substituted into the manifests — so a version is written in
+exactly one place.
 
-Flux manifests cannot read a file, so their chart versions are literals. [`.github/workflows/versions.yml`](../.github/workflows/versions.yml) fails CI if the two drift.
+```yaml
+# clusters/mini/cluster-vars.yaml
+radarr_version: "27.13.1"
+```
 
-To upgrade: change `versions.yaml`, change the matching HelmRelease, push.
+```yaml
+# apps/base/radarr/release.yaml
+version: "${radarr_version}"
+```
+
+The k3s version is the exception: it lives in `ansible/group_vars/all.yml`,
+because only Ansible installs k3s.
+
+To upgrade: change the value in `cluster-vars.yaml` and push.
 
 ## Checking state
 

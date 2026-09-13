@@ -69,17 +69,34 @@ ANSIBLE_CONFIG=./ansible.cfg ansible-playbook -i hosts.yml playbook_bootstrap.ym
 
 ## Variable reference
 
-Tuneables live in [`group_vars/all.yml`](../ansible/group_vars/all.yml); versions live in [`versions.yaml`](../versions.yaml).
+Settings shared with the cluster — IPs, domain, timezone, storage paths — live in
+[`clusters/mini/cluster-vars.yaml`](../clusters/mini/cluster-vars.yaml) and are mapped onto
+Ansible variable names in the playbook — chart and image versions included.
+Only Ansible-specific tuneables remain in [`group_vars/all.yml`](../ansible/group_vars/all.yml),
+including `k3s_version`, since only Ansible installs k3s.
+
+The node IP appears twice on purpose: `ansible_host` in `hosts.yml` cannot read cluster-vars,
+because the inventory is parsed before `vars_files` loads. Keep the two equal.
+
+### From cluster-vars
+
+| Key | Default | Description |
+| --- | --- | --- |
+| `server_ip` | `192.168.0.210` | k3s node; also the Ansible target |
+| `lan_subnet` | `192.168.0.0/24` | Allowed for SSH / k3s API / DNS |
+| `domain_root` | `local` | dnsmasq domain and ingress hostnames |
+| `timezone` | `America/New_York` | System and container timezone |
+| `traefik_lb_ip` | `192.168.0.220` | Traefik IP — first in the MetalLB pool |
+| `plex_lb_ip` | `192.168.0.221` | Plex IP — within the pool |
+| `metallb_pool` | `192.168.0.220-192.168.0.230` | LoadBalancer range — must not overlap DHCP |
+| `nfs_mount_point` | `/mnt/plex` | Media root |
+
+### Ansible-only
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `server_lan_ip` | `192.168.0.210` | Server LAN IP |
-| `lan_subnet` | `192.168.0.0/24` | Subnet allowed for SSH/k3s/DNS |
 | `hostname` | `minipc` | Server hostname |
-| `timezone` | `America/New_York` | System timezone |
-| `domain_suffix` | `local` | dnsmasq domain — **must match `domain_root` in cluster-vars** |
-| `networking_traefik_lb_ip` | `192.168.0.220` | Traefik IP, for dnsmasq — keep in sync with cluster-vars |
-| `plex_lb_ip` | `192.168.0.221` | Plex IP, for dnsmasq — keep in sync with cluster-vars |
+| `k3s_version` | `v1.35.3+k3s1` | k3s release; changing it reinstalls in place |
 | `k3s_force_reinstall` | `false` | Force a k3s reinstall |
 | `hardening_ssh_port` | `22` | SSH port |
 | `hardening_ssh_password_auth` | `no` | Set `yes` temporarily if the key is not on the server yet |
@@ -87,7 +104,6 @@ Tuneables live in [`group_vars/all.yml`](../ansible/group_vars/all.yml); version
 | `hardening_fail2ban_bantime` | `3600` | Ban duration (seconds) |
 | `nfs_enabled` | `false` | Enable when the external drive is attached |
 | `nfs_device` | `/dev/sdb1` | Drive device path |
-| `nfs_mount_point` | `/mnt/plex` | Mount point |
 | `nfs_fs_type` | `xfs` | Filesystem type |
 | `nfs_owner_uid` | `1000` | UID owning the NFS directories |
 | `networking_install_helm` | `true` | Install the Helm CLI on the server |

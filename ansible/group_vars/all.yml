@@ -1,16 +1,12 @@
 ---
-# Network
-lan_subnet: "192.168.0.0/24"
-server_lan_ip: "192.168.0.210"
-# These two feed dnsmasq only. The MetalLB pool itself is owned by Flux
-# (infrastructure/configs/metallb-pool.yaml) — keep these in sync with it.
-networking_traefik_lb_ip: "192.168.0.220"  # must match traefik_lb_ip in clusters/mini/cluster-vars.yaml
-plex_lb_ip: "192.168.0.221"  # must match plex_lb_ip in clusters/mini/cluster-vars.yaml
-domain_suffix: "local"  # Must match domain_root in clusters/mini/cluster-vars.yaml
+# Ansible-only settings. Anything shared with the cluster — IPs, domain,
+# timezone, storage paths — lives in clusters/mini/cluster-vars.yaml and is
+# mapped onto these variable names in playbook_bootstrap.yml.
+#
+# Chart and image versions live there too, substituted by Flux.
 
 # System
 hostname: "minipc"
-timezone: "America/New_York"
 
 # SSH hardening
 hardening_ssh_port: 22
@@ -26,11 +22,12 @@ hardening_fail2ban_maxretry: 5
 hardening_fail2ban_bantime: 3600
 hardening_fail2ban_findtime: 600
 
-# k3s — version comes from ../versions.yaml (loaded by playbook vars_files)
+# k3s — changing the version reinstalls in place (preserves /var/lib/rancher/k3s).
+k3s_version: "v1.35.3+k3s1"
 k3s_force_reinstall: false
 
-# NFS (disabled until external drive is attached — set nfs_enabled: true to activate)
+# NFS — set nfs_enabled: true once the external drive is attached.
+# nfs_mount_point comes from cluster-vars.
 nfs_enabled: false
 nfs_device: "/dev/sdb1"
-nfs_mount_point: "/mnt/plex"
 nfs_owner_uid: 1000

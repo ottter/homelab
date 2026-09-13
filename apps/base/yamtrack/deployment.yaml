@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
         - name: yamtrack
-          image: ghcr.io/fuzzygrim/yamtrack:0.26.3
+          image: ghcr.io/fuzzygrim/yamtrack:${yamtrack_image_tag}
           ports:
             - containerPort: 8000
           env:
@@ -47,7 +47,7 @@ spec:
             - name: yamtrack-db
               mountPath: /yamtrack/db
         - name: redis
-          image: redis:8-alpine
+          image: redis:${redis_image_tag}
       volumes:
         - name: yamtrack-db
           hostPath:

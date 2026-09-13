@@ -2,6 +2,7 @@
 # Fallback defaults — set nfs_enabled and paths in group_vars/all.yml.
 nfs_enabled: false
 nfs_device: "/dev/sdb1"
+# Overridden by cluster-vars via the playbook; this is only a fallback.
 nfs_mount_point: "/mnt/plex"
 nfs_fs_type: "xfs"
 nfs_owner_uid: 1000

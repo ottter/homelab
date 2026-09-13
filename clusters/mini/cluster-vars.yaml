@@ -1,10 +1,16 @@
 ---
-# Non-secret cluster values, substituted into manifests by Flux at apply time
-# via postBuild.substituteFrom. Replaces Terraform's var/templatefile pattern:
-# write ${domain_root} in any manifest and Flux fills it in.
+# Single source of truth for non-secret cluster settings.
 #
-# Secrets do NOT belong here — those live in apps/mini/secrets.enc.yaml (SOPS).
-# Must stay in sync with ansible/group_vars/all.yml.
+# Read by BOTH tools:
+#   - Flux, as a ConfigMap: write ${domain_root} in any manifest and
+#     postBuild.substituteFrom fills it in at apply time.
+#   - Ansible, via vars_files in playbook_bootstrap.yml, which exposes the
+#     block below as `data.<key>` (e.g. {{ data.server_ip }}).
+#
+# It has to stay shaped as a ConfigMap because Flux substitution reads from the
+# cluster, not from a file — so this is the one format both can consume.
+#
+# Secrets do NOT belong here — see apps/base/<app>/secret.enc.yaml (SOPS).
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -12,12 +18,13 @@ metadata:
   namespace: flux-system
 data:
   # --- Network ---------------------------------------------------------------
-  domain_root: "local"
+  domain_root: "local"            # dnsmasq domain + ingress hostnames
   timezone: "America/New_York"
-  server_ip: "192.168.0.210"
-  traefik_lb_ip: "192.168.0.220"
-  plex_lb_ip: "192.168.0.221"
+  server_ip: "192.168.0.210"      # k3s node; also the Ansible target
+  lan_subnet: "192.168.0.0/24"    # allowed for SSH / k3s API / DNS
   metallb_pool: "192.168.0.220-192.168.0.230"
+  traefik_lb_ip: "192.168.0.220"  # must be the first IP of metallb_pool
+  plex_lb_ip: "192.168.0.221"     # must be within metallb_pool
 
   # --- Storage ---------------------------------------------------------------
   nfs_mount_point: "/mnt/plex"
@@ -30,3 +37,22 @@ data:
 
   # --- Images ----------------------------------------------------------------
   discord_image: "ghcr.io/ottter/discord-bot:latest"
+
+  # --- Versions --------------------------------------------------------------
+  # Substituted into the manifests, so a version is edited here and nowhere else.
+  # Chart versions: infrastructure/controllers/ and apps/base/<app>/release.yaml
+  metallb_version: "0.14.9"
+  traefik_version: "35.2.0"
+  certmanager_version: "v1.17.2"
+
+  overseerr_version: "18.6.0"       # app 1.35.0
+  radarr_version: "27.13.1"         # app 6.4.3.10645
+  sonarr_version: "26.10.1"         # app 4.0.20.3012
+  transmission_version: "25.10.1"   # app 4.1.3
+  homepage_version: "13.6.0"        # app 2.3.0
+
+  # Image tags for the plain Deployments in apps/base/.
+  # discord is deliberately :latest — own image, rebuilt on every push.
+  plex_image_tag: "1.43.4"          # lscr.io/linuxserver/plex
+  yamtrack_image_tag: "0.26.3"      # ghcr.io/fuzzygrim/yamtrack
+  redis_image_tag: "8-alpine"       # yamtrack sidecar

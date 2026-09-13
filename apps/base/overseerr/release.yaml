@@ -1,9 +1,7 @@
 ---
 # https://truecharts.org/charts/stable/overseerr/
 #
-# Ported from terraform/modules/overseerr. Chart version is pinned here —
-# Terraform left it unpinned, so applies were not reproducible.
-# Keep in sync with versions.yaml (CI enforces this).
+# Chart version comes from cluster-vars.yaml, substituted by Flux.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -14,7 +12,7 @@ spec:
   chart:
     spec:
       chart: overseerr
-      version: "18.6.0"
+      version: "${overseerr_version}"
       sourceRef:
         kind: HelmRepository
         name: truecharts

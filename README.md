@@ -24,6 +24,53 @@ ansible-playbook playbook_bootstrap.yml
 git push        # Flux reconciles the repo onto the cluster
 ```
 
+## Configuration
+
+Two files hold everything you would normally want to change. Both tools read
+them, so a value is defined once.
+
+| File | Holds | Read by |
+| --- | --- | --- |
+| [`clusters/mini/cluster-vars.yaml`](clusters/mini/cluster-vars.yaml) | IPs, domain, timezone, paths, **versions** | Flux (substitution) + Ansible (`vars_files`) |
+| [`ansible/group_vars/all.yml`](ansible/group_vars/all.yml) | SSH hardening, fail2ban, NFS device, k3s version | Ansible only |
+
+Secrets are separate and encrypted — see [docs/secrets.md](docs/secrets.md).
+
+### Changing Settings
+
+**An IP, the domain, the timezone, a storage path** → edit `cluster-vars.yaml`.
+Flux substitutes `${domain_root}` and friends into manifests at apply time, and
+the Ansible playbook maps the same keys onto its own variable names.
+
+```sh
+ansible-playbook playbook_bootstrap.yml   # if it affects the server (dnsmasq, firewall)
+git push                                  # if it affects the cluster
+```
+
+An undefined `${var}` substitutes to an **empty string with no error**, so check
+the key exists before pushing.
+
+> The node IP is the one value defined twice: `ansible_host` in
+> [`ansible/hosts.yml`](ansible/hosts.yml) is read before `vars_files` loads, so
+> it cannot reference `cluster-vars`. Keep it equal to `server_ip`.
+
+**A chart or image version** → edit `cluster-vars.yaml`. The manifests carry
+`${radarr_version}` and friends, so the version is written once.
+
+```yaml
+# clusters/mini/cluster-vars.yaml
+radarr_version: "27.13.1"     # apps/base/radarr/release.yaml
+plex_image_tag: "1.43.4"      # apps/base/plex/deployment.yaml
+```
+
+```sh
+git push
+```
+
+**The k3s version** → edit `ansible/group_vars/all.yml`, then re-run the
+playbook. Only Ansible installs k3s, so it does not belong in the cluster
+ConfigMap. Changing it reinstalls k3s in place, preserving all workloads.
+
 ## Docs
 
 | | |

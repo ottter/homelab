@@ -14,9 +14,22 @@
   hosts: minipc
   become: true
 
-  # Single source of truth for pinned versions (repo root).
+  # cluster-vars is the single source of truth shared with Flux: IPs, domain,
+  # timezone, storage paths and versions. It is a ConfigMap Flux substitutes
+  # from; loaded here it exposes those keys as data.<key>.
   vars_files:
-    - ../versions.yaml
+    - ../clusters/mini/cluster-vars.yaml
+
+  # Map the ConfigMap keys onto the names the roles already use, so there is
+  # exactly one place to change an IP or a path.
+  vars:
+    server_lan_ip: "{{ data.server_ip }}"
+    lan_subnet: "{{ data.lan_subnet }}"
+    domain_suffix: "{{ data.domain_root }}"
+    timezone: "{{ data.timezone }}"
+    networking_traefik_lb_ip: "{{ data.traefik_lb_ip }}"
+    plex_lb_ip: "{{ data.plex_lb_ip }}"
+    nfs_mount_point: "{{ data.nfs_mount_point }}"
 
   roles:
     - common

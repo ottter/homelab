@@ -1,7 +1,6 @@
 ---
 # Chart versions and network config moved out of this role:
-#   versions   -> versions.yaml (repo root)
-#   pool / IPs -> clusters/mini/cluster-vars.yaml, applied by Flux
+#   versions, pool, IPs -> clusters/mini/cluster-vars.yaml, applied by Flux
 #
 # Only the Helm CLI toggle remains. Helm is not required — Flux's helm-controller
 # runs in-cluster — so this is purely for manual inspection on the server.

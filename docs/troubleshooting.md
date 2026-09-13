@@ -36,7 +36,7 @@ flux get helmreleases -A
 kubectl describe helmrelease <name> -n <namespace>
 ```
 
-Chart version mismatches show here. `versions.yaml` and the HelmRelease must agree — CI enforces it.
+Chart versions come from `cluster-vars.yaml` via `${<app>_version}`. An undefined key substitutes to an empty string, which Helm rejects.
 
 ## Certificate not issuing
 

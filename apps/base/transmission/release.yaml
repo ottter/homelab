@@ -18,7 +18,7 @@ spec:
   chart:
     spec:
       chart: transmission
-      version: "25.10.1"
+      version: "${transmission_version}"
       sourceRef:
         kind: HelmRepository
         name: truecharts
