@@ -14,6 +14,10 @@
   hosts: minipc
   become: true
 
+  # Single source of truth for pinned versions (repo root).
+  vars_files:
+    - ../versions.yaml
+
   roles:
     - common
     - hardening

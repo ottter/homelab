@@ -25,14 +25,12 @@ hardening_fail2ban_maxretry: 5
 hardening_fail2ban_bantime: 3600
 hardening_fail2ban_findtime: 600
 
-# k3s
-k3s_version: "v1.35.3+k3s1"
+# k3s — version comes from ../versions.yaml (loaded by playbook vars_files)
 k3s_force_reinstall: false
 
 # Networking (MetalLB + Traefik + cert-manager)
-networking_metallb_version: "0.14.9"
-networking_traefik_version: "35.2.0"
-networking_certmanager_version: "v1.17.2"
+# Chart versions moved to ../versions.yaml and are applied by Flux, not Ansible.
+# See infrastructure/controllers/.
 # networking_letsencrypt_email: ""            # Required for Let's Encrypt ClusterIssuer
 # networking_letsencrypt_cloudflare_token: "" # Cloudflare API token: Zone:DNS:Edit on website.dev
 

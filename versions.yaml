@@ -1,0 +1,28 @@
+---
+# Single source of truth for every pinned version in the homelab.
+#
+# Ansible reads this directly (group_vars/all.yml includes it).
+# Flux manifests cannot read a file, so their HelmRelease versions are checked
+# against this file by .github/workflows/versions.yml — a mismatch fails CI.
+#
+# To upgrade something: change it here, update the matching HelmRelease, push.
+
+# --- Cluster -----------------------------------------------------------------
+# Applied by ansible/roles/k3s. Changing this reinstalls k3s in place
+# (preserves /var/lib/rancher/k3s).
+k3s_version: "v1.35.3+k3s1"
+
+# Flux CLI/controllers. Upgrade with: flux bootstrap (re-run the playbook).
+flux_version: "v2.9.5"
+
+# --- Infrastructure (Helm charts, reconciled by Flux) ------------------------
+# Each must match the `version:` in the corresponding HelmRelease:
+#   infrastructure/controllers/<name>.yaml
+metallb_version: "0.14.9"       # infrastructure/controllers/metallb.yaml
+traefik_version: "35.2.0"       # infrastructure/controllers/traefik.yaml
+certmanager_version: "v1.17.2"  # infrastructure/controllers/cert-manager.yaml
+
+# --- Apps (TrueCharts, reconciled by Flux) -----------------------------------
+# Populated as each app is ported from Terraform to apps/base/.
+# Terraform never pinned these, so today's versions are whatever was latest at
+# apply time. Pin each one as it moves.

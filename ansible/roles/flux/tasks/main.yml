@@ -87,3 +87,51 @@
       delay: 10
       until: flux_health.rc == 0
       changed_when: false
+
+# CA export — moved here from the networking role.
+#
+# Flux mints the homelab CA but cannot write files to the server or fetch them
+# back to your PC. On a fresh build the secret does not exist until Flux has
+# reconciled cert-manager, so this must run after the Kustomizations are ready.
+- name: Export homelab CA for browser trust
+  when: flux_enabled
+  block:
+    # The flux CLI has no 'wait' subcommand; wait on the Ready condition.
+    - name: Wait for infrastructure Kustomizations to be ready
+      ansible.builtin.command:
+        cmd: >-
+          kubectl wait kustomization/infra-configs
+          --namespace flux-system
+          --for=condition=Ready
+          --timeout=5m
+      environment:
+        KUBECONFIG: "{{ flux_kubeconfig }}"
+      delegate_to: localhost
+      become: false
+      changed_when: false
+
+    - name: Read homelab CA certificate from cluster
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          kubectl get secret homelab-ca-secret -n cert-manager \
+            -o jsonpath={.data.tls.crt} | base64 -d
+        executable: /bin/bash
+      environment:
+        KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+      register: flux_ca_cert
+      changed_when: false
+
+    - name: Write CA cert to /etc/homelab-ca.crt
+      ansible.builtin.copy:
+        content: "{{ flux_ca_cert.stdout }}"
+        dest: /etc/homelab-ca.crt
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Copy CA cert to local working directory
+      ansible.builtin.fetch:
+        src: /etc/homelab-ca.crt
+        dest: "{{ playbook_dir }}/../homelab-ca.crt"
+        flat: true

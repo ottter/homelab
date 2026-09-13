@@ -19,262 +19,32 @@
   when: networking_helm_check.rc != 0
   changed_when: true
 
-- name: Create metallb-system namespace with PSA exemption
-  ansible.builtin.shell:
-    cmd: |
-      kubectl apply -f - <<'EOF'
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: metallb-system
-        labels:
-          pod-security.kubernetes.io/enforce: privileged
-          pod-security.kubernetes.io/audit: privileged
-          pod-security.kubernetes.io/warn: privileged
-      EOF
-    executable: /bin/bash
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_result
-  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
-
-- name: Create cert-manager namespace with PSA exemption
-  ansible.builtin.shell:
-    cmd: |
-      kubectl apply -f - <<'EOF'
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: cert-manager
-        labels:
-          pod-security.kubernetes.io/enforce: privileged
-          pod-security.kubernetes.io/audit: privileged
-          pod-security.kubernetes.io/warn: privileged
-      EOF
-    executable: /bin/bash
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_result
-  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
-
-- name: Create traefik namespace with PSA exemption
-  ansible.builtin.shell:
-    cmd: |
-      kubectl apply -f - <<'EOF'
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: traefik
-        labels:
-          pod-security.kubernetes.io/enforce: baseline
-          pod-security.kubernetes.io/audit: baseline
-          pod-security.kubernetes.io/warn: baseline
-      EOF
-    executable: /bin/bash
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_result
-  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
-
-- name: Add MetalLB Helm repo
-  ansible.builtin.command: helm repo add metallb https://metallb.github.io/metallb
-  register: networking_result
-  changed_when: "'already exists' not in networking_result.stdout"
-
-- name: Add Traefik Helm repo
-  ansible.builtin.command: helm repo add traefik https://traefik.github.io/charts
-  register: networking_result
-  changed_when: "'already exists' not in networking_result.stdout"
-
-- name: Add cert-manager Helm repo
-  ansible.builtin.command: helm repo add jetstack https://charts.jetstack.io
-  register: networking_result
-  changed_when: "'already exists' not in networking_result.stdout"
-
-- name: Update Helm repos
-  ansible.builtin.command: helm repo update
-  changed_when: true
-
-- name: Install MetalLB via Helm
-  ansible.builtin.command: >
-    helm upgrade --install metallb metallb/metallb
-    --namespace metallb-system
-    --create-namespace
-    --version {{ networking_metallb_version }}
-    --wait --timeout 120s
-    --set speaker.frr.enabled=false
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_result
-  changed_when: "'has been upgraded' in networking_result.stdout or 'has been deployed' in networking_result.stdout"
-
-- name: Wait for MetalLB controller to be ready
-  ansible.builtin.command: >
-    kubectl wait pod
-    --selector=app.kubernetes.io/component=controller
-    --namespace=metallb-system
-    --for=condition=ready
-    --timeout=120s
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  changed_when: false
-
-- name: Apply MetalLB IPAddressPool and L2Advertisement
-  ansible.builtin.shell:
-    cmd: |
-      kubectl apply -f - <<'EOF'
-      apiVersion: metallb.io/v1beta1
-      kind: IPAddressPool
-      metadata:
-        name: homelab-pool
-        namespace: metallb-system
-      spec:
-        addresses:
-        - {{ networking_metallb_pool }}
-      ---
-      apiVersion: metallb.io/v1beta1
-      kind: L2Advertisement
-      metadata:
-        name: homelab-l2
-        namespace: metallb-system
-      spec:
-        ipAddressPools:
-        - homelab-pool
-      EOF
-    executable: /bin/bash
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_result
-  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
-
-- name: Install Traefik via Helm
-  ansible.builtin.command: >
-    helm upgrade --install traefik traefik/traefik
-    --namespace traefik
-    --create-namespace
-    --version {{ networking_traefik_version }}
-    --wait --timeout 120s
-    --set "globalArguments={--global.sendAnonymousUsage=false}"
-    --set service.type=LoadBalancer
-    --set "service.annotations.metallb\.universe\.tf/loadBalancerIPs={{ networking_traefik_lb_ip }}"
-    --set ports.web.redirections.entryPoint.to=websecure
-    --set ports.web.redirections.entryPoint.scheme=https
-    --set ports.websecure.tls.enabled=true
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_result
-  changed_when: "'has been upgraded' in networking_result.stdout or 'has been deployed' in networking_result.stdout"
-
-- name: Apply Traefik LAN-only Middleware
-  ansible.builtin.shell:
-    cmd: |
-      kubectl apply -f - <<'EOF'
-      apiVersion: traefik.io/v1alpha1
-      kind: Middleware
-      metadata:
-        name: local-ipallowlist
-        namespace: traefik
-      spec:
-        ipAllowList:
-          sourceRange:
-          - "192.168.0.0/16"
-          - "10.0.0.0/8"
-          - "127.0.0.1/32"
-      EOF
-    executable: /bin/bash
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_result
-  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
-
-- name: Install cert-manager via Helm
-  ansible.builtin.command: >
-    helm upgrade --install cert-manager jetstack/cert-manager
-    --namespace cert-manager
-    --create-namespace
-    --version {{ networking_certmanager_version }}
-    --set crds.enabled=true
-    --wait --timeout 120s
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_result
-  changed_when: "'has been upgraded' in networking_result.stdout or 'has been deployed' in networking_result.stdout"
-
-- name: Apply homelab CA ClusterIssuer
-  ansible.builtin.shell:
-    cmd: |
-      kubectl apply -f - <<'EOF'
-      apiVersion: cert-manager.io/v1
-      kind: ClusterIssuer
-      metadata:
-        name: homelab-ca-issuer
-      spec:
-        selfSigned: {}
-      ---
-      apiVersion: cert-manager.io/v1
-      kind: Certificate
-      metadata:
-        name: homelab-ca
-        namespace: cert-manager
-      spec:
-        isCA: true
-        commonName: HomeLab CA
-        secretName: homelab-ca-secret
-        privateKey:
-          algorithm: RSA
-          size: 2048
-        issuerRef:
-          name: homelab-ca-issuer
-          kind: ClusterIssuer
-          group: cert-manager.io
-      ---
-      apiVersion: cert-manager.io/v1
-      kind: ClusterIssuer
-      metadata:
-        name: homelab-ca
-      spec:
-        ca:
-          secretName: homelab-ca-secret
-      EOF
-    executable: /bin/bash
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_result
-  changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
-
-# - name: Create Cloudflare API token secret for Let's Encrypt DNS-01 challenge
-#   ansible.builtin.shell:
-#     cmd: |
-#       kubectl create secret generic cloudflare-api-token \
-#         --from-literal=api-token={{ networking_letsencrypt_cloudflare_token }} \
-#         --namespace cert-manager \
-#         --dry-run=client -o yaml | kubectl apply -f -
-#     executable: /bin/bash
-#   environment:
-#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-#   register: networking_result
-#   changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
+# ---------------------------------------------------------------------------
+# MOVED TO FLUX — see infrastructure/controllers/ and infrastructure/configs/
 #
-# - name: Apply Let's Encrypt ClusterIssuer (DNS-01 via Cloudflare)
+# MetalLB, Traefik, cert-manager, their namespaces, the IPAddressPool, the
+# ClusterIssuer chain and the Traefik middleware are now reconciled by Flux.
+# Managing them here too would give two owners to the same resources.
+#
+# Chart versions are pinned in the HelmReleases, not in group_vars.
+#
+# Kept commented rather than deleted so the rollback path stays visible: to
+# hand control back to Ansible, suspend the Flux Kustomizations first —
+#   flux suspend kustomization infra-controllers infra-configs
+# then uncomment everything below.
+# ---------------------------------------------------------------------------
+# - name: Create metallb-system namespace with PSA exemption
 #   ansible.builtin.shell:
 #     cmd: |
 #       kubectl apply -f - <<'EOF'
-#       apiVersion: cert-manager.io/v1
-#       kind: ClusterIssuer
+#       apiVersion: v1
+#       kind: Namespace
 #       metadata:
-#         name: letsencrypt-prod
-#       spec:
-#         acme:
-#           server: https://acme-v02.api.letsencrypt.org/directory
-#           email: {{ networking_letsencrypt_email }}
-#           privateKeySecretRef:
-#             name: letsencrypt-prod-key
-#           solvers:
-#           - dns01:
-#               cloudflare:
-#                 apiTokenSecretRef:
-#                   name: cloudflare-api-token
-#                   key: api-token
+#         name: metallb-system
+#         labels:
+#           pod-security.kubernetes.io/enforce: privileged
+#           pod-security.kubernetes.io/audit: privileged
+#           pod-security.kubernetes.io/warn: privileged
 #       EOF
 #     executable: /bin/bash
 #   environment:
@@ -282,44 +52,257 @@
 #   register: networking_result
 #   changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
 #
-# Prerequisites before uncommenting:
-#   1. Set networking_letsencrypt_cloudflare_token in ansible/group_vars/all.yml (or vault)
-#   2. Set networking_letsencrypt_email in ansible/group_vars/all.yml
-#   3. Add NS record in Squarespace: overseerr.website.dev -> Cloudflare nameservers
-#   4. Forward port 443 on router to 192.168.0.210
-#   Then: activate tls-letsencrypt.tf.disabled in terraform/modules/overseerr/
+# - name: Create cert-manager namespace with PSA exemption
+#   ansible.builtin.shell:
+#     cmd: |
+#       kubectl apply -f - <<'EOF'
+#       apiVersion: v1
+#       kind: Namespace
+#       metadata:
+#         name: cert-manager
+#         labels:
+#           pod-security.kubernetes.io/enforce: privileged
+#           pod-security.kubernetes.io/audit: privileged
+#           pod-security.kubernetes.io/warn: privileged
+#       EOF
+#     executable: /bin/bash
+#   environment:
+#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+#   register: networking_result
+#   changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
+#
+# - name: Create traefik namespace with PSA exemption
+#   ansible.builtin.shell:
+#     cmd: |
+#       kubectl apply -f - <<'EOF'
+#       apiVersion: v1
+#       kind: Namespace
+#       metadata:
+#         name: traefik
+#         labels:
+#           pod-security.kubernetes.io/enforce: baseline
+#           pod-security.kubernetes.io/audit: baseline
+#           pod-security.kubernetes.io/warn: baseline
+#       EOF
+#     executable: /bin/bash
+#   environment:
+#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+#   register: networking_result
+#   changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
+#
+# - name: Add MetalLB Helm repo
+#   ansible.builtin.command: helm repo add metallb https://metallb.github.io/metallb
+#   register: networking_result
+#   changed_when: "'already exists' not in networking_result.stdout"
+#
+# - name: Add Traefik Helm repo
+#   ansible.builtin.command: helm repo add traefik https://traefik.github.io/charts
+#   register: networking_result
+#   changed_when: "'already exists' not in networking_result.stdout"
+#
+# - name: Add cert-manager Helm repo
+#   ansible.builtin.command: helm repo add jetstack https://charts.jetstack.io
+#   register: networking_result
+#   changed_when: "'already exists' not in networking_result.stdout"
+#
+# - name: Update Helm repos
+#   ansible.builtin.command: helm repo update
+#   changed_when: true
+#
+# - name: Install MetalLB via Helm
+#   ansible.builtin.command: >
+#     helm upgrade --install metallb metallb/metallb
+#     --namespace metallb-system
+#     --create-namespace
+#     --version {{ networking_metallb_version }}
+#     --wait --timeout 120s
+#     --set speaker.frr.enabled=false
+#   environment:
+#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+#   register: networking_result
+#   changed_when: "'has been upgraded' in networking_result.stdout or 'has been deployed' in networking_result.stdout"
+#
+# - name: Wait for MetalLB controller to be ready
+#   ansible.builtin.command: >
+#     kubectl wait pod
+#     --selector=app.kubernetes.io/component=controller
+#     --namespace=metallb-system
+#     --for=condition=ready
+#     --timeout=120s
+#   environment:
+#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+#   changed_when: false
+#
+# - name: Apply MetalLB IPAddressPool and L2Advertisement
+#   ansible.builtin.shell:
+#     cmd: |
+#       kubectl apply -f - <<'EOF'
+#       apiVersion: metallb.io/v1beta1
+#       kind: IPAddressPool
+#       metadata:
+#         name: homelab-pool
+#         namespace: metallb-system
+#       spec:
+#         addresses:
+#         - {{ networking_metallb_pool }}
+#       ---
+#       apiVersion: metallb.io/v1beta1
+#       kind: L2Advertisement
+#       metadata:
+#         name: homelab-l2
+#         namespace: metallb-system
+#       spec:
+#         ipAddressPools:
+#         - homelab-pool
+#       EOF
+#     executable: /bin/bash
+#   environment:
+#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+#   register: networking_result
+#   changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
+#
+# - name: Install Traefik via Helm
+#   ansible.builtin.command: >
+#     helm upgrade --install traefik traefik/traefik
+#     --namespace traefik
+#     --create-namespace
+#     --version {{ networking_traefik_version }}
+#     --wait --timeout 120s
+#     --set "globalArguments={--global.sendAnonymousUsage=false}"
+#     --set service.type=LoadBalancer
+#     --set "service.annotations.metallb\.universe\.tf/loadBalancerIPs={{ networking_traefik_lb_ip }}"
+#     --set ports.web.redirections.entryPoint.to=websecure
+#     --set ports.web.redirections.entryPoint.scheme=https
+#     --set ports.websecure.tls.enabled=true
+#   environment:
+#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+#   register: networking_result
+#   changed_when: "'has been upgraded' in networking_result.stdout or 'has been deployed' in networking_result.stdout"
+#
+# - name: Apply Traefik LAN-only Middleware
+#   ansible.builtin.shell:
+#     cmd: |
+#       kubectl apply -f - <<'EOF'
+#       apiVersion: traefik.io/v1alpha1
+#       kind: Middleware
+#       metadata:
+#         name: local-ipallowlist
+#         namespace: traefik
+#       spec:
+#         ipAllowList:
+#           sourceRange:
+#           - "192.168.0.0/16"
+#           - "10.0.0.0/8"
+#           - "127.0.0.1/32"
+#       EOF
+#     executable: /bin/bash
+#   environment:
+#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+#   register: networking_result
+#   changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
+#
+# - name: Install cert-manager via Helm
+#   ansible.builtin.command: >
+#     helm upgrade --install cert-manager jetstack/cert-manager
+#     --namespace cert-manager
+#     --create-namespace
+#     --version {{ networking_certmanager_version }}
+#     --set crds.enabled=true
+#     --wait --timeout 120s
+#   environment:
+#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+#   register: networking_result
+#   changed_when: "'has been upgraded' in networking_result.stdout or 'has been deployed' in networking_result.stdout"
+#
+# - name: Apply homelab CA ClusterIssuer
+#   ansible.builtin.shell:
+#     cmd: |
+#       kubectl apply -f - <<'EOF'
+#       apiVersion: cert-manager.io/v1
+#       kind: ClusterIssuer
+#       metadata:
+#         name: homelab-ca-issuer
+#       spec:
+#         selfSigned: {}
+#       ---
+#       apiVersion: cert-manager.io/v1
+#       kind: Certificate
+#       metadata:
+#         name: homelab-ca
+#         namespace: cert-manager
+#       spec:
+#         isCA: true
+#         commonName: HomeLab CA
+#         secretName: homelab-ca-secret
+#         privateKey:
+#           algorithm: RSA
+#           size: 2048
+#         issuerRef:
+#           name: homelab-ca-issuer
+#           kind: ClusterIssuer
+#           group: cert-manager.io
+#       ---
+#       apiVersion: cert-manager.io/v1
+#       kind: ClusterIssuer
+#       metadata:
+#         name: homelab-ca
+#       spec:
+#         ca:
+#           secretName: homelab-ca-secret
+#       EOF
+#     executable: /bin/bash
+#   environment:
+#     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+#   register: networking_result
+#   changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
+#
+# # - name: Create Cloudflare API token secret for Let's Encrypt DNS-01 challenge
+# #   ansible.builtin.shell:
+# #     cmd: |
+# #       kubectl create secret generic cloudflare-api-token \
+# #         --from-literal=api-token={{ networking_letsencrypt_cloudflare_token }} \
+# #         --namespace cert-manager \
+# #         --dry-run=client -o yaml | kubectl apply -f -
+# #     executable: /bin/bash
+# #   environment:
+# #     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+# #   register: networking_result
+# #   changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
+# #
+# # - name: Apply Let's Encrypt ClusterIssuer (DNS-01 via Cloudflare)
+# #   ansible.builtin.shell:
+# #     cmd: |
+# #       kubectl apply -f - <<'EOF'
+# #       apiVersion: cert-manager.io/v1
+# #       kind: ClusterIssuer
+# #       metadata:
+# #         name: letsencrypt-prod
+# #       spec:
+# #         acme:
+# #           server: https://acme-v02.api.letsencrypt.org/directory
+# #           email: {{ networking_letsencrypt_email }}
+# #           privateKeySecretRef:
+# #             name: letsencrypt-prod-key
+# #           solvers:
+# #           - dns01:
+# #               cloudflare:
+# #                 apiTokenSecretRef:
+# #                   name: cloudflare-api-token
+# #                   key: api-token
+# #       EOF
+# #     executable: /bin/bash
+# #   environment:
+# #     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+# #   register: networking_result
+# #   changed_when: "'configured' in networking_result.stdout or 'created' in networking_result.stdout"
+# #
+# # Prerequisites before uncommenting:
+# #   1. Set networking_letsencrypt_cloudflare_token in ansible/group_vars/all.yml (or vault)
+# #   2. Set networking_letsencrypt_email in ansible/group_vars/all.yml
+# #   3. Add NS record in Squarespace: overseerr.website.dev -> Cloudflare nameservers
+# #   4. Forward port 443 on router to 192.168.0.210
+# #   Then: activate tls-letsencrypt.tf.disabled in terraform/modules/overseerr/
 
-- name: Wait for homelab CA certificate to be ready
-  ansible.builtin.command: >
-    kubectl wait certificate homelab-ca
-    --namespace cert-manager
-    --for=condition=Ready
-    --timeout=60s
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  changed_when: false
-
-- name: Export homelab CA certificate for browser trust
-  ansible.builtin.shell:
-    cmd: |
-      set -o pipefail
-      kubectl get secret homelab-ca-secret -n cert-manager -o jsonpath='{.data.tls\.crt}' | base64 -d
-    executable: /bin/bash
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: networking_ca_cert
-  changed_when: false
-
-- name: Write CA cert to /etc/homelab-ca.crt
-  ansible.builtin.copy:
-    content: "{{ networking_ca_cert.stdout }}"
-    dest: /etc/homelab-ca.crt
-    owner: root
-    group: root
-    mode: "0644"
-
-- name: Copy CA cert to local working directory
-  ansible.builtin.fetch:
-    src: /etc/homelab-ca.crt
-    dest: "{{ playbook_dir }}/../homelab-ca.crt"
-    flat: true
+# NOTE: CA export moved to roles/flux. Flux cannot write /etc/homelab-ca.crt on
+# the server or fetch it back to your PC, and on a fresh build the CA secret
+# does not exist until Flux has reconciled cert-manager.
