@@ -76,8 +76,12 @@ spec:
         ingressClassName: traefik
         enabled: true
         integrations:
+          # Auto-discovery off: these apps are listed explicitly in
+          # apps/base/homepage/configmap.yaml. Leaving it on adds a second,
+          # duplicate entry in its own group with no API key, which then
+          # renders an error on the dashboard.
           homepage:
-            enabled: true
+            enabled: false
           traefik:
             enabled: true
         hosts:

@@ -34,10 +34,20 @@ data:
       image: https://portfolio.jamescr.dev/photos/travel/travel-1038a75272c54da795f81471ace610fb.jpg
       blur: sm
       brightness: 60
-      opacity: 60
+      opacity: 70
 
-    # Optional: 'theme: dark' / 'color: slate' pin the look instead of
-    # following the browser preference.
+    # A photo background washes out white text, so pin a dark theme and make
+    # the cards more solid rather than relying on browser preference.
+    # Per-group layout. Personal Sites has 4 entries; columns: 2 renders
+    # them 2x2 instead of a single row of 4.
+    layout:
+      Personal Sites:
+        style: row
+        columns: 2
+
+    theme: dark
+    color: slate
+    cardBlur: md
 
   services.yaml: |
     - Media Management:
@@ -100,22 +110,22 @@ data:
     # timing the redirect; the others return 200 at the root.
     - Personal Sites:
       - Dles:
-          icon: si-html5
+          icon: mdi-cards-playing
           href: https://dles.jamescr.dev/
           description: Daily puzzle games
           siteMonitor: https://dles.jamescr.dev/pick
       - JA Planner:
-          icon: si-googlecalendar
+          icon: mdi-coffee
           href: https://japlanner.jamescr.dev/
           description: Trip planner
           siteMonitor: https://japlanner.jamescr.dev
       - Portfolio:
-          icon: si-readdotcv
+          icon: mdi-camera
           href: https://portfolio.jamescr.dev/
           description: Portfolio
           siteMonitor: https://portfolio.jamescr.dev
       - jamescr.dev:
-          icon: si-github
+          icon: mdi-home
           href: https://jamescr.dev/
           description: Personal site
           siteMonitor: https://jamescr.dev
@@ -129,9 +139,12 @@ data:
           cpu: true
           memory: true
           showLabel: true
-          label: minipc
+          label: cluster
         nodes:
-          show: false
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
     # 'resources' reads the container filesystem, not the host, so no disk gauge
     # here — it would report Homepage's own overlay, not the node's disk.
     - resources:
