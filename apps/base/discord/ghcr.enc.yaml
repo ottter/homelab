@@ -1,0 +1,24 @@
+# SOPS-encrypted. Edit with: sops apps/base/discord/ghcr.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+    name: discord-ghcr
+    namespace: discord
+type: kubernetes.io/dockerconfigjson
+stringData:
+    .dockerconfigjson: ENC[AES256_GCM,data:+UmtHBHbCvap0OWh7dqZBoYNJedm1jE8v2rp0Ffl1Edoup7sPxfmMeN920woHQqW+6os+1clQKD0FGqHZk4hoSx4O3p8oAwz5Edk6vGRDn0RTrBCxI28k4qbZWw5ocz01PnceVjkLPsHz5TxevtMnUZ4Vl4gthCFIM5Nr8zqUnvXdhBh1G5Dkd6ebPdj3XzUjbh+u8dPUqc07OLC9OyCOkm3MATGhdYrpq7r,iv:O+Nb6hZiVpOc5MZ/YCUqbHMHp3ys1KbE10jrX9d5cY0=,tag:vrXITdHEZPaUdUlLKVGp1g==,type:str]
+sops:
+    age:
+        - enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBLQUk4dkZSU0cwTzNJQkM5
+            QWk3aXZZdDJVV0tyWVF6OXlFb0N6b2NjY2lNCnFnMHRzOFRuYTlWVU1MUmVmTndB
+            SDBqNHpDNENWQ2ZVWUs1QytIMnFUcGsKLS0tIEdhVUdkS3k3ZUx6aEVvUEpyQm5K
+            b1hEc2xUZW5nYzBadnN6RHZRNW9KSTAKaP7UkGQGLssEZ98TWYwYkoXGM1n6Iy/1
+            eXITQxTyN08paFBoWYVe2XTJ4uLH0EVmcsgnEQAE+MQN+nMF9Wgt0A==
+            -----END AGE ENCRYPTED FILE-----
+          recipient: age1qkyvh2mrapx0td606w0m8cyc22q2wk4rvpmzvgntpz7eqpx5lvhqmsfap9
+    encrypted_regex: ^(data|stringData)$
+    lastmodified: "2026-09-13T23:56:45Z"
+    mac: ENC[AES256_GCM,data:W6A0m46EBw+nEz5Yc7VbmvE+hLeB6pZLScYCIOk6fk9oTLT6/v6dmfbx2EB5MhHaGEuraEbRue33GnyYa0Umk1TxtTgYvAiuBoImk44gR+OyLsd5NF9/QLwk/QAO6eMRrkzaeO/6Q7E1HykycrtyQHmrBOSPD0jSL5i3N4/l784=,iv:Wb7HF30tXSEW6YUg/uP2qhmIVce+8vbaA2I+APJqMss=,tag:edzRLcGyns6Wyak0cKn+Rw==,type:str]
+    version: 3.13.3

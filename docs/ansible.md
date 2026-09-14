@@ -28,15 +28,15 @@ Runs `delegate_to: localhost` — it uses the flux CLI in your WSL and `ansible/
 
 It fails early with a clear message if the flux CLI, `GITHUB_TOKEN`, or the age key are missing, rather than halfway through a bootstrap.
 
-It also exports the homelab CA to `/etc/homelab-ca.crt` and fetches a copy locally. That lives here rather than in the networking role because Flux mints the CA but cannot write files to the server — and on a fresh build the secret does not exist until Flux has reconciled cert-manager.
+It also exports the homelab CA to `/etc/homelab-ca.crt` and fetches a copy locally. Flux mints the CA but cannot write files to the server, and on a fresh build the secret does not exist until cert-manager has reconciled — so this step runs after the Kustomizations are ready.
 
 ## The networking role
 
-Now installs the Helm CLI and nothing else. MetalLB, Traefik, cert-manager and their config moved to `infrastructure/`, because two owners for the same resources causes drift.
+Installs the Helm CLI and nothing else. MetalLB, Traefik, cert-manager and their config are owned by Flux in `infrastructure/` — two owners for the same resources causes drift.
 
 Helm is not required — Flux's helm-controller runs in-cluster — so it is there only for inspecting releases by hand (`helm list`, `helm get values`). Set `networking_install_helm: false` to skip it.
 
-To hand control back to Ansible, suspend Flux first and restore the tasks from git history:
+To hand control back to Ansible, suspend Flux first:
 
 ```sh
 flux suspend kustomization infra-controllers infra-configs

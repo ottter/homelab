@@ -13,15 +13,14 @@ resources:
   - ../base/transmission
   - ../base/yamtrack
   - ../base/homepage
+  - ../base/discord
 
   # Disabled.
   # Plex: needs its hostPath dirs present on the node and a valid claim token.
   #   Also uncomment the 'Allow Plex from LAN only' ufw task in
   #   ansible/roles/hardening/tasks/main.yml — Plex bypasses Traefik on its
   #   own MetalLB IP, so port 32400 is firewalled off until that rule exists.
-  # Discord: needs DISCORD_TOKEN set in secrets.enc.yaml and a GHCR pull secret.
   # - ../base/plex
-  # - ../base/discord
 
   # NFS media mounts for radarr/sonarr are off until the drive is attached and
   # the Ansible nfs role has run. To enable, set nfs_enabled: true in

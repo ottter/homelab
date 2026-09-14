@@ -58,6 +58,7 @@ sops --decrypt apps/base/radarr/secret.enc.yaml
 | `sonarr-secrets` | sonarr | pinned `SONARR__AUTH__APIKEY` |
 | `yamtrack-secrets` | yamtrack | Django `SECRET` |
 | `discord-secrets` | discord | `DISCORD_TOKEN` |
+| `discord-ghcr` | discord | GHCR pull credentials (private image) |
 | `homepage-secrets` | homepage | `HOMEPAGE_VAR_*` API keys |
 
 Homepage reads its keys as `{{HOMEPAGE_VAR_NAME}}` placeholders resolved at runtime, so no key is ever written into the ConfigMap.
@@ -98,3 +99,11 @@ flux get kustomizations
 Keep the old key backed up until step 6 passes. Then back up the new one.
 
 After rotation the old key no longer decrypts the file — that is the point of a rotation, as opposed to just adding a second recipient.
+
+## Leak scanning
+
+`.github/workflows/secrets.yml` runs TruffleHog on every push and PR, weekly on a schedule, and on demand. It scans the **full history** (`fetch-depth: 0`) — a secret deleted in a later commit is still retrievable from the earlier one, so scanning only the tip would miss the case that matters.
+
+`--results=verified` means it only fails when a credential is confirmed **live** against the provider's API. SOPS files are base64 ciphertext and the age key in `.sops.yaml` is public, so neither trips it.
+
+If it ever fails, treat the credential as compromised: **revoke it first**, then rewrite history. Deleting the file in a new commit does not remove it from git.

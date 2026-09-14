@@ -11,13 +11,13 @@ Defined in `apps/base/<name>/`, enabled by listing them in [`apps/mini/kustomiza
 | Transmission | `https://transmission.local` | Torrent client used by Radarr/Sonarr |
 | Yamtrack | `https://yam.local` | Media tracker (SQLite at `/var/lib/yamtrack/db`) |
 | Plex | `http://plex.local:32400/web/` | Media server — **disabled by default** |
-| Discord | — | Bot, no ingress — **disabled by default** |
+| Discord | `https://discord.com/developers/` | Chatbot, no ingress |
 
 Plex takes its own MetalLB IP (`plex_lb_ip`, default `192.168.0.221`) and bypasses Traefik entirely: it handles its own TLS and does not sit well behind a reverse proxy.
 
 ## Enabling a disabled app
 
-Uncomment it in `apps/mini/kustomization.yaml` and push. Both have prerequisites first.
+Uncomment it in `apps/mini/kustomization.yaml` and push. Plex has prerequisites first.
 
 ### Plex
 
@@ -49,9 +49,10 @@ mkdir -p {downloads/{incomplete,complete},media/{movies,tv},config,transmission/
 
 The image is [lscr.io/linuxserver/plex](https://hub.docker.com/r/linuxserver/plex) and assumes uid/gid 1000 owns the media. Get a [claim token](https://www.plex.tv/claim/) — optional but easier — and put it in `secrets.enc.yaml` as `PLEX_CLAIM`. **It expires in 4 minutes**, so deploy promptly.
 
-### Discord
 
-Needs `DISCORD_TOKEN` in `secrets.enc.yaml` (from <https://discord.com/developers/applications>) and a GHCR pull secret — a fine-grained PAT with `read:packages`.
+## Discord
+
+The bot has no ingress and no storage — it only makes outbound connections. The image `ghcr.io/ottter/discord-bot` is private, so the `discord-ghcr` pull secret is required alongside `DISCORD_TOKEN`.
 
 ```sh
 # force a redeploy after pushing a new image to the same tag
