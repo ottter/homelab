@@ -49,7 +49,6 @@ mkdir -p {downloads/{incomplete,complete},media/{movies,tv},config,transmission/
 
 The image is [lscr.io/linuxserver/plex](https://hub.docker.com/r/linuxserver/plex) and assumes uid/gid 1000 owns the media. Get a [claim token](https://www.plex.tv/claim/) — optional but easier — and put it in `secrets.enc.yaml` as `PLEX_CLAIM`. **It expires in 4 minutes**, so deploy promptly.
 
-
 ## Discord
 
 The bot has no ingress and no storage — it only makes outbound connections. The image `ghcr.io/ottter/discord-bot` is private, so the `discord-ghcr` pull secret is required alongside `DISCORD_TOKEN`.
