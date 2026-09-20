@@ -27,6 +27,7 @@ backup_quiesce_deployments:
   - overseerr/overseerr
   - homepage/homepage
   - yamtrack/yamtrack
+  - discord/discord
 
 # Paths archived. Missing paths are skipped, not fatal — transmission and the
 # NFS-backed dirs may legitimately not exist yet.

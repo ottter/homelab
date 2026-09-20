@@ -62,6 +62,7 @@ plex_image_tag: "1.43.4"      # apps/base/plex/deployment.yaml
 
 ```sh
 git push
+flux reconcile kustomization apps --with-source
 ```
 
 **The k3s version** → edit `ansible/group_vars/all.yml`, then re-run the playbook.
