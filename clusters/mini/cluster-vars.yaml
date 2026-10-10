@@ -36,7 +36,7 @@ data:
   yamtrack_path_db: "/var/lib/yamtrack/db"
 
   # --- Images ----------------------------------------------------------------
-  discord_image: "ghcr.io/ottter/discord-bot:1.2.1"
+  discord_image: "ghcr.io/ottter/discord-bot:1.2.2"
 
   # --- Versions --------------------------------------------------------------
   # Substituted into the manifests, so a version is edited here and nowhere else.
